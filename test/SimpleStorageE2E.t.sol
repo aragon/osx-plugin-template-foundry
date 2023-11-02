@@ -1,18 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.21;
 
-import { console2 } from "forge-std/console2.sol";
+import {DAO} from "@aragon/osx/core/dao/DAO.sol";
+import {DaoUnauthorized} from "@aragon/osx/core/utils/auth.sol";
+import {PluginRepo} from "@aragon/osx/framework/plugin/repo/PluginRepo.sol";
 
-import { Clones } from "@openzeppelin/contracts/proxy/Clones.sol";
-import { DAO } from "@aragon/osx/core/dao/DAO.sol";
-import { DAOMock } from "@aragon/osx/test/dao/DAOMock.sol";
-import { IPluginSetup } from "@aragon/osx/framework/plugin/setup/PluginSetup.sol";
-import { DaoUnauthorized } from "@aragon/osx/core/utils/auth.sol";
-import { PluginRepo } from "@aragon/osx/framework/plugin/repo/PluginRepo.sol";
-
-import { AragonE2E } from "./base/AragonE2E.sol";
-import { SimpleStorageSetup } from "../src/SimpleStorageSetup.sol";
-import { SimpleStorage } from "../src/SimpleStorage.sol";
+import {AragonE2E} from "./base/AragonE2E.sol";
+import {SimpleStorageSetup} from "../src/SimpleStorageSetup.sol";
+import {SimpleStorage} from "../src/SimpleStorage.sol";
 
 contract SimpleStorageE2E is AragonE2E {
     DAO internal dao;
@@ -27,7 +22,11 @@ contract SimpleStorageE2E is AragonE2E {
         setup = new SimpleStorageSetup();
         address _plugin;
 
-        (dao, repo, _plugin) = deployRepoAndDao("simplestorage4202934800", address(setup), abi.encode(NUMBER));
+        (dao, repo, _plugin) = deployRepoAndDao(
+            "simplestorage4202934800",
+            address(setup),
+            abi.encode(NUMBER)
+        );
 
         plugin = SimpleStorage(_plugin);
     }
@@ -51,7 +50,13 @@ contract SimpleStorageE2E is AragonE2E {
         // test unauthorised cannot store number
         vm.prank(unauthorised);
         vm.expectRevert(
-            abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, unauthorised, keccak256("STORE_PERMISSION"))
+            abi.encodeWithSelector(
+                DaoUnauthorized.selector,
+                dao,
+                plugin,
+                unauthorised,
+                keccak256("STORE_PERMISSION")
+            )
         );
         plugin.storeNumber(69);
     }

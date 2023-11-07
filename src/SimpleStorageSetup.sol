@@ -4,6 +4,7 @@ pragma solidity ^0.8.17;
 
 import {PermissionLib} from "@aragon/osx/core/permission/PermissionLib.sol";
 import {PluginSetup, IPluginSetup} from "@aragon/osx/framework/plugin/setup/PluginSetup.sol";
+import {IDAO} from "@aragon/osx/core/dao/IDAO.sol";
 import {SimpleStorage} from "./SimpleStorage.sol";
 
 /// @title SimpleStorageSetup build 1
@@ -23,7 +24,7 @@ contract SimpleStorageSetup is PluginSetup {
 
         plugin = createERC1967Proxy(
             IMPLEMEMTATION,
-            abi.encodeWithSelector(SimpleStorage.initialize.selector, _dao, number)
+            abi.encodeCall(SimpleStorage.initialize, (IDAO(_dao), number))
         );
 
         PermissionLib.MultiTargetPermission[]

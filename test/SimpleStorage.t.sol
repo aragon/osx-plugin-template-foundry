@@ -31,8 +31,6 @@ contract SimpleStorageInitializeTest is SimpleStorageTest {
     }
 
     function test_initialize() public {
-        // You can use the `console2` library to print logs to the console
-        console2.log("dao", dao);
         assertEq(address(plugin.dao()), address(dao));
         assertEq(plugin.number(), NUMBER);
     }
@@ -57,12 +55,9 @@ contract SimpleStorageStoreNumberTest is SimpleStorageTest {
     function test_reverts_if_not_auth() public {
         // error DaoUnauthorized({dao: address(_dao),  where: _where,  who: _who,permissionId: _permissionId });
         vm.expectRevert(
-            abi.encodeWithSelector(
-                DaoUnauthorized.selector,
-                dao,
-                plugin,
-                address(this),
-                keccak256("STORE_PERMISSION")
+            abi.encodeCall(
+                DaoUnauthorized,
+                (dao, plugin, address(this), keccak256("STORE_PERMISSION"))
             )
         );
         plugin.storeNumber(69);

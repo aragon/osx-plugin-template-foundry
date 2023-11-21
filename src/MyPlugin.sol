@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity >=0.8.17;
+pragma solidity 0.8.17;
 
 import {PluginUUPSUpgradeable, IDAO} from "@aragon/osx/core/plugin/PluginUUPSUpgradeable.sol";
 
 /**
- * @title Budget
- * @author DAOBox (Security@DAOBox.app)
- * @notice Budgeting module for efficient spending from an Aragon OSx DAO using allowance chains
- * to delegate spending authority
+ * @title My Plugin
+ * @notice A plugin that stores a number.
  */
-contract SimpleStorage is PluginUUPSUpgradeable {
+contract MyPlugin is PluginUUPSUpgradeable {
     bytes32 public constant STORE_PERMISSION_ID = keccak256("STORE_PERMISSION");
 
     uint256 public number; // added in build 1

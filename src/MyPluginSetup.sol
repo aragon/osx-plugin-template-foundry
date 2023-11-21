@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-pragma solidity ^0.8.17;
+pragma solidity 0.8.17;
 
 import {PermissionLib} from "@aragon/osx/core/permission/PermissionLib.sol";
 import {PluginSetup, IPluginSetup} from "@aragon/osx/framework/plugin/setup/PluginSetup.sol";
 import {IDAO} from "@aragon/osx/core/dao/IDAO.sol";
-import {SimpleStorage} from "./SimpleStorage.sol";
+import {MyPlugin} from "./MyPlugin.sol";
 
-/// @title SimpleStorageSetup build 1
-contract SimpleStorageSetup is PluginSetup {
+/// @title MyPluginSetup build 1
+contract MyPluginSetup is PluginSetup {
     address private immutable IMPLEMEMTATION;
 
     constructor() {
-        IMPLEMEMTATION = address(new SimpleStorage());
+        IMPLEMEMTATION = address(new MyPlugin());
     }
 
     /// @inheritdoc IPluginSetup
@@ -24,7 +24,7 @@ contract SimpleStorageSetup is PluginSetup {
 
         plugin = createERC1967Proxy(
             IMPLEMEMTATION,
-            abi.encodeCall(SimpleStorage.initialize, (IDAO(_dao), number))
+            abi.encodeCall(MyPlugin.initialize, (IDAO(_dao), number))
         );
 
         PermissionLib.MultiTargetPermission[]

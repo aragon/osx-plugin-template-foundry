@@ -5,27 +5,27 @@ import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 
 import {DaoUnauthorized} from "@aragon/osx/core/utils/auth.sol";
 import {AragonTest} from "./base/AragonTest.sol";
-import {SimpleStorageSetup} from "../src/SimpleStorageSetup.sol";
-import {SimpleStorage} from "../src/SimpleStorage.sol";
+import {MyPluginSetup} from "../src/MyPluginSetup.sol";
+import {MyPlugin} from "../src/MyPlugin.sol";
 
-abstract contract SimpleStorageTest is AragonTest {
+abstract contract MyPluginTest is AragonTest {
     DAO internal dao;
-    SimpleStorage internal plugin;
-    SimpleStorageSetup internal setup;
+    MyPlugin internal plugin;
+    MyPluginSetup internal setup;
     uint256 internal constant NUMBER = 420;
 
     function setUp() public virtual {
-        setup = new SimpleStorageSetup();
+        setup = new MyPluginSetup();
         bytes memory setupData = abi.encode(NUMBER);
 
         (DAO _dao, address _plugin) = createMockDaoWithPlugin(setup, setupData);
 
         dao = _dao;
-        plugin = SimpleStorage(_plugin);
+        plugin = MyPlugin(_plugin);
     }
 }
 
-contract SimpleStorageInitializeTest is SimpleStorageTest {
+contract MyPluginInitializeTest is MyPluginTest {
     function setUp() public override {
         super.setUp();
     }
@@ -41,7 +41,7 @@ contract SimpleStorageInitializeTest is SimpleStorageTest {
     }
 }
 
-contract SimpleStorageStoreNumberTest is SimpleStorageTest {
+contract MyPluginStoreNumberTest is MyPluginTest {
     function setUp() public override {
         super.setUp();
     }
@@ -55,9 +55,12 @@ contract SimpleStorageStoreNumberTest is SimpleStorageTest {
     function test_reverts_if_not_auth() public {
         // error DaoUnauthorized({dao: address(_dao),  where: _where,  who: _who,permissionId: _permissionId });
         vm.expectRevert(
-            abi.encodeCall(
-                DaoUnauthorized,
-                (dao, plugin, address(this), keccak256("STORE_PERMISSION"))
+            abi.encodeWithSelector(
+                DaoUnauthorized.selector,
+                dao,
+                plugin,
+                address(this),
+                keccak256("STORE_PERMISSION")
             )
         );
         plugin.storeNumber(69);

@@ -6,20 +6,20 @@ import {DaoUnauthorized} from "@aragon/osx/core/utils/auth.sol";
 import {PluginRepo} from "@aragon/osx/framework/plugin/repo/PluginRepo.sol";
 
 import {AragonE2E} from "./base/AragonE2E.sol";
-import {SimpleStorageSetup} from "../src/SimpleStorageSetup.sol";
-import {SimpleStorage} from "../src/SimpleStorage.sol";
+import {MyPluginSetup} from "../src/MyPluginSetup.sol";
+import {MyPlugin} from "../src/MyPlugin.sol";
 
-contract SimpleStorageE2E is AragonE2E {
+contract MyPluginE2E is AragonE2E {
     DAO internal dao;
-    SimpleStorage internal plugin;
+    MyPlugin internal plugin;
     PluginRepo internal repo;
-    SimpleStorageSetup internal setup;
+    MyPluginSetup internal setup;
     uint256 internal constant NUMBER = 420;
     address internal unauthorised = account("unauthorised");
 
     function setUp() public virtual override {
         super.setUp();
-        setup = new SimpleStorageSetup();
+        setup = new MyPluginSetup();
         address _plugin;
 
         (dao, repo, _plugin) = deployRepoAndDao(
@@ -28,7 +28,7 @@ contract SimpleStorageE2E is AragonE2E {
             abi.encode(NUMBER)
         );
 
-        plugin = SimpleStorage(_plugin);
+        plugin = MyPlugin(_plugin);
     }
 
     function test_e2e() public {

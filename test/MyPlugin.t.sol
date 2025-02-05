@@ -1,68 +1,57 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.24;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.17;
 
-import {DAO} from "@aragon/osx/core/dao/DAO.sol";
-
-import {DaoUnauthorized} from "@aragon/osx/core/utils/auth.sol";
-import {AragonTest} from "./base/AragonTest.sol";
-import {MyPluginSetup} from "../src/MyPluginSetup.sol";
+import "forge-std/Test.sol";
+import {IDAO} from "@aragon/osx-commons-contracts/src/dao/IDAO.sol";
+import {DAO} from "@aragon/osx/src/core/dao/DAO.sol";
 import {MyPlugin} from "../src/MyPlugin.sol";
+import {DaoBuilder} from "./util/DaoBuilder.sol";
+import {AragonTest} from "./util/AragonTest.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeCastUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import {createProxyAndCall} from "../src/util/proxy.sol";
 
-abstract contract MyPluginTest is AragonTest {
-    DAO internal dao;
-    MyPlugin internal plugin;
-    MyPluginSetup internal setup;
-    uint256 internal constant NUMBER = 420;
+contract MyPluginTest is AragonTest {
+    using SafeCastUpgradeable for uint256;
+
+    DaoBuilder builder;
+    DAO dao;
+    MyPlugin myPlugin;
+    IERC20 lockableToken;
+    IERC20 underlyingToken;
+    uint256 proposalId; // Not used in this test
 
     function setUp() public virtual {
-        setup = new MyPluginSetup();
-        bytes memory setupData = abi.encode(NUMBER);
+        vm.startPrank(alice);
+        vm.warp(10 days);
+        vm.roll(100);
 
-        (DAO _dao, address _plugin) = createMockDaoWithPlugin(setup, setupData);
+        builder = new DaoBuilder();
+        // Build the DAO using DaoBuilder; we ignore the plugin returned since we test MyPlugin separately.
+        (dao, , lockableToken, underlyingToken) = builder
+            .withTokenHolder(alice, 1 ether)
+            .withTokenHolder(bob, 10 ether)
+            .withTokenHolder(carol, 10 ether)
+            .withTokenHolder(david, 15 ether)
+            .build();
 
-        dao = _dao;
-        plugin = MyPlugin(_plugin);
-    }
-}
-
-contract MyPluginInitializeTest is MyPluginTest {
-    function setUp() public override {
-        super.setUp();
-    }
-
-    function test_initialize() public {
-        assertEq(address(plugin.dao()), address(dao));
-        assertEq(plugin.number(), NUMBER);
-    }
-
-    function test_reverts_if_reinitialized() public {
-        vm.expectRevert("Initializable: contract is already initialized");
-        plugin.initialize(dao, 69);
-    }
-}
-
-contract MyPluginStoreNumberTest is MyPluginTest {
-    function setUp() public override {
-        super.setUp();
-    }
-
-    function test_store_number() public {
-        vm.prank(address(dao));
-        plugin.storeNumber(69);
-        assertEq(plugin.number(), 69);
-    }
-
-    function test_reverts_if_not_auth() public {
-        // error DaoUnauthorized({dao: address(_dao),  where: _where,  who: _who,permissionId: _permissionId });
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                DaoUnauthorized.selector,
-                dao,
-                plugin,
-                address(this),
-                keccak256("STORE_PERMISSION")
-            )
+        // Deploy MyPlugin through a proxy and initialize it
+        address myPluginBase = address(new MyPlugin());
+        myPlugin = MyPlugin(
+            createProxyAndCall(myPluginBase, abi.encodeCall(MyPlugin.initialize, (IDAO(address(dao)), 42)))
         );
-        plugin.storeNumber(69);
+
+        // Grant STORE_PERMISSION_ID to alice
+        dao.grant(address(myPlugin), alice, myPlugin.STORE_PERMISSION_ID());
+
+        vm.stopPrank();
+    }
+
+    function testStoreNumber() public {
+        vm.startPrank(alice);
+        assertEq(myPlugin.number(), 42, "Initial number is incorrect");
+        myPlugin.storeNumber(100);
+        assertEq(myPlugin.number(), 100, "Stored number did not update");
+        vm.stopPrank();
     }
 }

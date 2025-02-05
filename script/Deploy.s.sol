@@ -1,103 +1,68 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.17;
 
-import {Script, console2} from "forge-std/Script.sol";
-import {Vm} from "forge-std/Vm.sol";
+import {Script, console} from "forge-std/Script.sol";
+import {DAO} from "@aragon/osx/src/core/dao/DAO.sol";
+import {IVotesUpgradeable} from "@openzeppelin/contracts-upgradeable/governance/utils/IVotesUpgradeable.sol";
+import {MyPluginSetup} from "../src/setup/MyPluginSetup.sol";
+import {PluginRepoFactory} from "@aragon/osx/src/framework/plugin/repo/PluginRepoFactory.sol";
+import {PluginRepo} from "@aragon/osx/src/framework/plugin/repo/PluginRepo.sol";
+import {PluginSetupProcessor} from "@aragon/osx/src/framework/plugin/setup/PluginSetupProcessor.sol";
+import {TestToken} from "../test/mocks/TestToken.sol";
 
-import {DAOFactory} from "@aragon/osx/framework/dao/DAOFactory.sol";
-import {PluginRepoFactory} from "@aragon/osx/framework/plugin/repo/PluginRepoFactory.sol";
-import {PluginRepo} from "@aragon/osx/framework/plugin/repo/PluginRepo.sol";
-import {hashHelpers, PluginSetupRef} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessorHelpers.sol";
+contract Deploy is Script {
+    modifier broadcast() {
+        uint256 privKey = vm.envUint("DEPLOYMENT_PRIVATE_KEY");
+        vm.startBroadcast(privKey);
+        console.log("Deploying from:", vm.addr(privKey));
 
-import {MyPlugin} from "../src/MyPlugin.sol";
-import {MyPluginSetup} from "../src/MyPluginSetup.sol";
-
-contract MyPluginScript is Script {
-    address pluginRepoFactory;
-    DAOFactory daoFactory;
-    string nameWithEntropy;
-    address[] pluginAddress;
-
-    function setUp() public {
-        pluginRepoFactory = vm.envAddress("PLUGIN_REPO_FACTORY");
-        daoFactory = DAOFactory(vm.envAddress("DAO_FACTORY"));
-        nameWithEntropy = string.concat("my-plugin-", vm.toString(block.timestamp));
-    }
-
-    function run() public {
-        // 0. Setting up Foundry
-        vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
-
-        // 1. Deploying the Plugin Setup
-        MyPluginSetup pluginSetup = deployPluginSetup();
-
-        // 2. Publishing it in the Aragon OSx Protocol
-        PluginRepo pluginRepo = deployPluginRepo(address(pluginSetup));
-
-        // 3. Defining the DAO Settings
-        DAOFactory.DAOSettings memory daoSettings = getDAOSettings();
-
-        // 4. Defining the plugin settings
-        DAOFactory.PluginSettings[] memory pluginSettings = getPluginSettings(pluginRepo);
-
-        // 5. Deploying the DAO
-        vm.recordLogs();
-        address createdDAO = address(daoFactory.createDao(daoSettings, pluginSettings));
-
-        // 6. Getting the Plugin Address
-        Vm.Log[] memory logEntries = vm.getRecordedLogs();
-
-        for (uint256 i = 0; i < logEntries.length; i++) {
-            if (
-                logEntries[i].topics[0] ==
-                keccak256("InstallationApplied(address,address,bytes32,bytes32)")
-            ) {
-                pluginAddress.push(address(uint160(uint256(logEntries[i].topics[2]))));
-            }
-        }
+        _;
 
         vm.stopBroadcast();
-
-        // 7. Logging the resulting addresses
-        console2.log("Plugin Setup: ", address(pluginSetup));
-        console2.log("Plugin Repo: ", address(pluginRepo));
-        console2.log("Created DAO: ", address(createdDAO));
-        console2.log("Installed Plugins: ");
-        for (uint256 i = 0; i < pluginAddress.length; i++) {
-            console2.log("- ", pluginAddress[i]);
-        }
     }
 
-    function deployPluginSetup() public returns (MyPluginSetup) {
-        MyPluginSetup pluginSetup = new MyPluginSetup();
-        return pluginSetup;
-    }
+    function run() public broadcast {
+        address maintainer = vm.envAddress("PLUGIN_MAINTAINER");
+        address pluginRepoFactory = vm.envAddress("PLUGIN_REPO_FACTORY");
+        string memory myPluginEnsSubdomain = vm.envString("MY_PLUGIN_REPO_ENS_SUBDOMAIN");
 
-    function deployPluginRepo(address pluginSetup) public returns (PluginRepo pluginRepo) {
-        pluginRepo = PluginRepoFactory(pluginRepoFactory).createPluginRepoWithFirstVersion(
-            nameWithEntropy,
-            pluginSetup,
-            msg.sender,
-            "0x00", // TODO: Give these actual values on prod
-            "0x00"
+
+        // Deploy the plugin setup's
+        (address myPluginSetup, PluginRepo myPluginRepo) = prepareMyPlugin(
+            maintainer,
+            PluginRepoFactory(pluginRepoFactory),
+            myPluginEnsSubdomain
         );
+
+
+        console.log("Chain ID:", block.chainid);
+
+        console.log("");
+
+        console.log("Plugins");
+        console.log("- MyPluginSetup:", myPluginSetup);
+        console.log("");
+
+        console.log("Plugin repositories");
+        console.log("- MyPlugin repository:", address(myPluginRepo));
     }
 
-    function getDAOSettings() public view returns (DAOFactory.DAOSettings memory) {
-        return DAOFactory.DAOSettings(address(0), "", nameWithEntropy, "");
-    }
+    function prepareMyPlugin(
+        address maintainer,
+        PluginRepoFactory pluginRepoFactory,
+        string memory ensSubdomain
+    ) internal returns (address pluginSetup, PluginRepo) {
+        // Publish repo
+        MyPluginSetup _pluginSetup = new MyPluginSetup();
 
-    function getPluginSettings(
-        PluginRepo pluginRepo
-    ) public pure returns (DAOFactory.PluginSettings[] memory pluginSettings) {
-        uint256 pluginCounterNumber = 1;
-        bytes memory pluginSettingsData = abi.encode(pluginCounterNumber);
-
-        PluginRepo.Tag memory tag = PluginRepo.Tag(1, 1);
-        pluginSettings = new DAOFactory.PluginSettings[](1);
-        pluginSettings[0] = DAOFactory.PluginSettings(
-            PluginSetupRef(tag, pluginRepo),
-            pluginSettingsData
+        PluginRepo pluginRepo = pluginRepoFactory.createPluginRepoWithFirstVersion(
+            ensSubdomain, // ENS repo subdomain left empty
+            address(_pluginSetup),
+            maintainer,
+            " ",
+            " "
         );
+        return (address(_pluginSetup), pluginRepo);
     }
+
 }

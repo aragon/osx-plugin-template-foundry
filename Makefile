@@ -8,7 +8,8 @@
 # Override the verifier and block explorer parameters (network dependent)
 deploy-testnet: export ETHERSCAN_API_KEY_PARAM = --etherscan-api-key $(ETHERSCAN_API_KEY)
 deploy-prodnet: export ETHERSCAN_API_KEY_PARAM = --etherscan-api-key $(ETHERSCAN_API_KEY)
-
+# deploy-testnet: export VERIFIER_TYPE_PARAM = --verifier blockscout
+# deploy-testnet: export VERIFIER_URL_PARAM = --verifier-url "https://server/api\?"
 
 # CONSTANTS
 

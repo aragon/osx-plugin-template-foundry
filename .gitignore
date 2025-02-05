@@ -1,18 +1,26 @@
-# directories
-cache
-coverage
-node_modules
-out
+# Compiler files
+cache/
+out/
 
-# files
-*.env
-*.log
+# Ignores development broadcast logs
+!/broadcast
+/broadcast/*/31337/
+/broadcast/**/dry-run/
+
+# Docs
+docs/
+
+# Dotenv file
+.env
+
+# Development
 .DS_Store
-.pnp.*
 lcov.info
-yarn.lock
+report
+*.tree
 
-# broadcasts
-!broadcast
-broadcast/*
-broadcast/*/31337/
+# Deployment
+logs/*
+
+# Draw.io backup files
+*.drawio.bkp

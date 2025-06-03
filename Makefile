@@ -11,6 +11,7 @@ SHELL:=/bin/bash
 SOLIDITY_VERSION := 0.8.28
 DEPLOY_SCRIPT := script/Deploy.s.sol:DeployScript
 MAKE_TEST_TREE_CMD := deno run ./script/make-test-tree.ts
+VERIFY_CONTRACTS_SCRIPT := script/verify-contracts.sh
 TEST_TREE_MARKDOWN := TEST_TREE.md
 ARTIFACTS_FOLDER := ./artifacts
 LOGS_FOLDER := ./logs
@@ -189,15 +190,15 @@ deploy: test ## Deploy the protocol, verify the source code and write to ./artif
 
 .PHONY: verify-etherscan
 verify-etherscan: broadcast/Deploy.s.sol/$(CHAIN_ID)/run-latest.json ## Verify the last deployment on an Etherscan compatible explorer
-	bash script/verify-contracts.sh $(CHAIN_ID) etherscan $(VERIFIER_URL) $(VERIFIER_API_KEY)
+	bash $(VERIFY_CONTRACTS_SCRIPT) $(CHAIN_ID) etherscan $(VERIFIER_URL) $(VERIFIER_API_KEY)
 
 .PHONY: verify-blockscout
 verify-blockscout: broadcast/Deploy.s.sol/$(CHAIN_ID)/run-latest.json ## Verify the last deployment on BlockScout
-	bash script/verify-contracts.sh $(CHAIN_ID) blockscout $(VERIFIER_URL) $(VERIFIER_API_KEY)
+	bash $(VERIFY_CONTRACTS_SCRIPT) $(CHAIN_ID) blockscout $(VERIFIER_URL) $(VERIFIER_API_KEY)
 
 .PHONY: verify-sourcify
 verify-sourcify: broadcast/Deploy.s.sol/$(CHAIN_ID)/run-latest.json ## Verify the last deployment on Sourcify
-	bash script/verify-contracts.sh $(CHAIN_ID) sourcify "" ""
+	bash $(VERIFY_CONTRACTS_SCRIPT) $(CHAIN_ID) sourcify "" ""
 
 ##
 

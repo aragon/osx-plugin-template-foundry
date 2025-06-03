@@ -153,6 +153,8 @@ You can deploy an in-memory, local OSx deployment to run your E2E tests on top o
 forge install aragon/protocol-factory
 ```
 
+You may need to set `via_ir` to `true` on `foundry.toml`.
+
 Given that this repository already depends on OSx, you may want to replace the existing `remappings.txt` entry and use the OSx path provided by `protocol-factory` itself.
 
 ```diff

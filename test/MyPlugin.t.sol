@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.24;
+pragma solidity ^0.8.24;
 
 import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 
@@ -55,13 +55,7 @@ contract MyPluginStoreNumberTest is MyPluginTest {
     function test_reverts_if_not_auth() public {
         // error DaoUnauthorized({dao: address(_dao),  where: _where,  who: _who,permissionId: _permissionId });
         vm.expectRevert(
-            abi.encodeWithSelector(
-                DaoUnauthorized.selector,
-                dao,
-                plugin,
-                address(this),
-                keccak256("STORE_PERMISSION")
-            )
+            abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, address(this), keccak256("STORE_PERMISSION"))
         );
         plugin.storeNumber(69);
     }

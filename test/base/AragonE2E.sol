@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.24;
+pragma solidity ^0.8.24;
 
 import {Vm} from "forge-std/Test.sol";
 import {console2} from "forge-std/console2.sol";
@@ -25,21 +25,23 @@ contract AragonE2E is AragonTest {
         bytes32 network = keccak256(abi.encodePacked(vm.envString("FORKING_NETWORK")));
         address[] memory protocol;
 
-        if (network == keccak256(abi.encodePacked("mainnet")))
+        if (network == keccak256(abi.encodePacked("mainnet"))) {
             protocol = vm.envAddress("MAINNET", ",");
-        else if (network == keccak256(abi.encodePacked("goerli")))
+        } else if (network == keccak256(abi.encodePacked("goerli"))) {
             protocol = vm.envAddress("GOERLI", ",");
-        else if (network == keccak256(abi.encodePacked("sepolia")))
+        } else if (network == keccak256(abi.encodePacked("sepolia"))) {
             protocol = vm.envAddress("SEPOLIA", ",");
-        else if (network == keccak256(abi.encodePacked("polygon")))
+        } else if (network == keccak256(abi.encodePacked("polygon"))) {
             protocol = vm.envAddress("POLYGON", ",");
-        else if (network == keccak256(abi.encodePacked("mumbai")))
+        } else if (network == keccak256(abi.encodePacked("mumbai"))) {
             protocol = vm.envAddress("MUMBAI", ",");
-        else if (network == keccak256(abi.encodePacked("baseGoerli")))
+        } else if (network == keccak256(abi.encodePacked("baseGoerli"))) {
             protocol = vm.envAddress("BASE_GOERLI", ",");
-        else if (network == keccak256(abi.encodePacked("baseMainnet")))
+        } else if (network == keccak256(abi.encodePacked("baseMainnet"))) {
             protocol = vm.envAddress("BASE_MAINNET", ",");
-        else revert UnknownNetwork();
+        } else {
+            revert UnknownNetwork();
+        }
 
         daoFactory = DAOFactory(protocol[0]);
         repoFactory = PluginRepoFactory(protocol[1]);
@@ -58,10 +60,7 @@ contract AragonE2E is AragonTest {
     /// @param _repoSubdomain The subdomain for the new PluginRepo
     /// @param _pluginSetup The address of the plugin setup contract
     /// @return repo The address of the newly created PluginRepo
-    function deployRepo(
-        string memory _repoSubdomain,
-        address _pluginSetup
-    ) internal returns (PluginRepo repo) {
+    function deployRepo(string memory _repoSubdomain, address _pluginSetup) internal returns (PluginRepo repo) {
         repo = repoFactory.createPluginRepoWithFirstVersion({
             _subdomain: _repoSubdomain,
             _pluginSetup: _pluginSetup,
@@ -76,10 +75,7 @@ contract AragonE2E is AragonTest {
     /// @param installData The installation data for the DAO
     /// @return dao The newly created DAO
     /// @return plugin The plugin used in the DAO
-    function deployDao(
-        PluginRepo repo,
-        bytes memory installData
-    ) internal returns (DAO dao, address plugin) {
+    function deployDao(PluginRepo repo, bytes memory installData) internal returns (DAO dao, address plugin) {
         // 1. dao settings
         DAOFactory.DAOSettings memory daoSettings = DAOFactory.DAOSettings({
             trustedForwarder: address(0),
@@ -102,10 +98,7 @@ contract AragonE2E is AragonTest {
         // 4. get the plugin address
         Vm.Log[] memory entries = vm.getRecordedLogs();
         for (uint256 i = 0; i < entries.length; i++) {
-            if (
-                entries[i].topics[0] ==
-                keccak256("InstallationApplied(address,address,bytes32,bytes32)")
-            ) {
+            if (entries[i].topics[0] == keccak256("InstallationApplied(address,address,bytes32,bytes32)")) {
                 // the plugin address is the third topic
                 plugin = address(uint160(uint256(entries[i].topics[2])));
             }
@@ -116,11 +109,10 @@ contract AragonE2E is AragonTest {
     /// @param _repoSubdomain The subdomain for the new PluginRepo
     /// @param _pluginSetup The address of the plugin setup contract
     /// @param pluginInitData The initialization data for the plugin
-    function deployRepoAndDao(
-        string memory _repoSubdomain,
-        address _pluginSetup,
-        bytes memory pluginInitData
-    ) internal returns (DAO dao, PluginRepo repo, address plugin) {
+    function deployRepoAndDao(string memory _repoSubdomain, address _pluginSetup, bytes memory pluginInitData)
+        internal
+        returns (DAO dao, PluginRepo repo, address plugin)
+    {
         repo = deployRepo(_repoSubdomain, _pluginSetup);
         (dao, plugin) = deployDao(repo, pluginInitData);
     }

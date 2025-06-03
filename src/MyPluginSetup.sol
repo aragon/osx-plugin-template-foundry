@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-pragma solidity 0.8.24;
+pragma solidity ^0.8.24;
 
 import {PermissionLib} from "@aragon/osx/core/permission/PermissionLib.sol";
 import {PluginSetup, IPluginSetup} from "@aragon/osx/framework/plugin/setup/PluginSetup.sol";
@@ -16,19 +16,15 @@ contract MyPluginSetup is PluginSetup {
     }
 
     /// @inheritdoc IPluginSetup
-    function prepareInstallation(
-        address _dao,
-        bytes memory _data
-    ) external returns (address plugin, PreparedSetupData memory preparedSetupData) {
+    function prepareInstallation(address _dao, bytes memory _data)
+        external
+        returns (address plugin, PreparedSetupData memory preparedSetupData)
+    {
         uint256 number = abi.decode(_data, (uint256));
 
-        plugin = createERC1967Proxy(
-            IMPLEMEMTATION,
-            abi.encodeCall(MyPlugin.initialize, (IDAO(_dao), number))
-        );
+        plugin = createERC1967Proxy(IMPLEMEMTATION, abi.encodeCall(MyPlugin.initialize, (IDAO(_dao), number)));
 
-        PermissionLib.MultiTargetPermission[]
-            memory permissions = new PermissionLib.MultiTargetPermission[](1);
+        PermissionLib.MultiTargetPermission[] memory permissions = new PermissionLib.MultiTargetPermission[](1);
 
         permissions[0] = PermissionLib.MultiTargetPermission({
             operation: PermissionLib.Operation.Grant,
@@ -42,10 +38,11 @@ contract MyPluginSetup is PluginSetup {
     }
 
     /// @inheritdoc IPluginSetup
-    function prepareUninstallation(
-        address _dao,
-        SetupPayload calldata _payload
-    ) external pure returns (PermissionLib.MultiTargetPermission[] memory permissions) {
+    function prepareUninstallation(address _dao, SetupPayload calldata _payload)
+        external
+        pure
+        returns (PermissionLib.MultiTargetPermission[] memory permissions)
+    {
         permissions = new PermissionLib.MultiTargetPermission[](1);
 
         permissions[0] = PermissionLib.MultiTargetPermission({

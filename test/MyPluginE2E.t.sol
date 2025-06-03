@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.24;
+pragma solidity ^0.8.24;
 
 import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {DaoUnauthorized} from "@aragon/osx/core/utils/auth.sol";
@@ -22,11 +22,7 @@ contract MyPluginE2E is AragonE2E {
         setup = new MyPluginSetup();
         address _plugin;
 
-        (dao, repo, _plugin) = deployRepoAndDao(
-            "simplestorage4202934800",
-            address(setup),
-            abi.encode(NUMBER)
-        );
+        (dao, repo, _plugin) = deployRepoAndDao("simplestorage4202934800", address(setup), abi.encode(NUMBER));
 
         plugin = MyPlugin(_plugin);
     }
@@ -50,13 +46,7 @@ contract MyPluginE2E is AragonE2E {
         // test unauthorised cannot store number
         vm.prank(unauthorised);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                DaoUnauthorized.selector,
-                dao,
-                plugin,
-                unauthorised,
-                keccak256("STORE_PERMISSION")
-            )
+            abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, unauthorised, keccak256("STORE_PERMISSION"))
         );
         plugin.storeNumber(69);
     }

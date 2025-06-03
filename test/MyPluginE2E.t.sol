@@ -5,36 +5,46 @@ import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {DaoUnauthorized} from "@aragon/osx/core/utils/auth.sol";
 import {PluginRepo} from "@aragon/osx/framework/plugin/repo/PluginRepo.sol";
 
-import {AragonE2E} from "./base/AragonE2E.sol";
+import {AragonForkTest} from "./base/AragonForkTest.sol";
 import {MyPluginSetup} from "../src/MyPluginSetup.sol";
 import {MyPlugin} from "../src/MyPlugin.sol";
+import {NON_EMPTY_BYTES} from "./constants.sol";
 
-contract MyPluginE2E is AragonE2E {
+contract MyPluginE2E is AragonForkTest {
     DAO internal dao;
     MyPlugin internal plugin;
     PluginRepo internal repo;
     MyPluginSetup internal setup;
     uint256 internal constant NUMBER = 420;
-    address internal unauthorised = account("unauthorised");
+    address internal unauthorised = vm.addr(12345678);
 
     function setUp() public virtual override {
         super.setUp();
         setup = new MyPluginSetup();
         address _plugin;
 
-        (dao, repo, _plugin) = deployRepoAndDao("simplestorage4202934800", address(setup), abi.encode(NUMBER));
+        (dao, repo, _plugin) = deployDaoRepoPlugin(
+            "simplestorage4202934800",
+            address(setup),
+            abi.encode(NUMBER)
+        );
 
         plugin = MyPlugin(_plugin);
     }
 
     function test_e2e() public {
         // test repo
-        PluginRepo.Version memory version = repo.getLatestVersion(repo.latestRelease());
+        PluginRepo.Version memory version = repo.getLatestVersion(
+            repo.latestRelease()
+        );
         assertEq(version.pluginSetup, address(setup));
         assertEq(version.buildMetadata, NON_EMPTY_BYTES);
 
         // test dao
-        assertEq(keccak256(bytes(dao.daoURI())), keccak256(bytes("https://mockDaoURL.com")));
+        assertEq(
+            keccak256(bytes(dao.daoURI())),
+            keccak256(bytes("http://host/"))
+        );
 
         // test plugin init correctly
         assertEq(plugin.number(), 420);
@@ -46,7 +56,13 @@ contract MyPluginE2E is AragonE2E {
         // test unauthorised cannot store number
         vm.prank(unauthorised);
         vm.expectRevert(
-            abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, unauthorised, keccak256("STORE_PERMISSION"))
+            abi.encodeWithSelector(
+                DaoUnauthorized.selector,
+                dao,
+                plugin,
+                unauthorised,
+                keccak256("STORE_PERMISSION")
+            )
         );
         plugin.storeNumber(69);
     }

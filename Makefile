@@ -12,7 +12,7 @@ SOLIDITY_VERSION := 0.8.28
 DEPLOY_SCRIPT := script/Deploy.s.sol:DeployScript
 MAKE_TEST_TREE_CMD := deno run ./script/make-test-tree.ts
 VERIFY_CONTRACTS_SCRIPT := script/verify-contracts.sh
-TEST_TREE_MARKDOWN := TEST_TREE.md
+TEST_TREE_MARKDOWN := TESTS.md
 ARTIFACTS_FOLDER := ./artifacts
 LOGS_FOLDER := ./logs
 VERBOSITY := -vvv
@@ -99,7 +99,11 @@ test: export ETHERSCAN_API_KEY=
 
 .PHONY: test
 test: ## Run unit tests, locally
-	forge test $(VERBOSITY)
+	forge test $(VERBOSITY) --no-match-path ./test/*Fork*
+
+.PHONY: test-fork
+test-fork: ## Run fork tests, using RPC_URL
+	forge test $(VERBOSITY) --match-path ./test/*Fork*
 
 test-coverage: report/index.html ## Generate an HTML coverage report under ./report
 	@which open > /dev/null && open report/index.html || true
@@ -113,7 +117,7 @@ lcov.info: $(TEST_COVERAGE_SRC_FILES)
 
 ##
 
-sync-tests: $(TEST_TREE_FILES) ## Scaffold or sync tree files into solidity tests
+sync-tests: $(TEST_TREE_FILES) ## Scaffold or sync test definitions into solidity tests
 	@for file in $^; do \
 		if [ ! -f $${file%.tree}.t.sol ]; then \
 			echo "[Scaffold]   $${file%.tree}.t.sol" ; \
@@ -124,14 +128,14 @@ sync-tests: $(TEST_TREE_FILES) ## Scaffold or sync tree files into solidity test
 		fi \
 	done
 
-check-tests: $(TEST_TREE_FILES) ## Checks if solidity files are out of sync
+check-tests: $(TEST_TREE_FILES) ## Checks if the solidity test files are out of sync
 	bulloak check $^
 
 markdown-tests: $(TEST_TREE_MARKDOWN) ## Generates a markdown file with the test definitions rendered as a tree
 
 # Generate single a markdown file with the test trees
 $(TEST_TREE_MARKDOWN): $(TEST_TREE_FILES)
-	@echo "[Markdown]   TEST_TREE.md"
+	@echo "[Markdown]   $(TEST_TREE_MARKDOWN)"
 	@echo "# Test tree definitions" > $@
 	@echo "" >> $@
 	@echo "Below is the graphical definition of the contract tests implemented on [the test folder](./test)" >> $@

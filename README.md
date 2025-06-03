@@ -44,10 +44,11 @@ Available targets:
 Testing lifecycle:
 
 - make test               Run unit tests, locally
+- make test-fork          Run fork tests, using RPC_URL
 - make test-coverage      Generate an HTML coverage report under ./report
 
-- make sync-tests         Scaffold or sync tree files into solidity tests
-- make check-tests        Checks if solidity files are out of sync
+- make sync-tests         Scaffold or sync test definitions into solidity tests
+- make check-tests        Checks if the solidity test files are out of sync
 - make markdown-tests     Generates a markdown file with the test definitions rendered as a tree
 
 Deployment targets:

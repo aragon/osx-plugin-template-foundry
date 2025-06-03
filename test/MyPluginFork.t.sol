@@ -10,7 +10,7 @@ import {MyPluginSetup} from "../src/MyPluginSetup.sol";
 import {MyPlugin} from "../src/MyPlugin.sol";
 import {NON_EMPTY_BYTES} from "./constants.sol";
 
-contract MyPluginE2E is AragonForkTest {
+contract MyPluginFork is AragonForkTest {
     DAO internal dao;
     MyPlugin internal plugin;
     PluginRepo internal repo;

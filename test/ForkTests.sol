@@ -1,35 +1,36 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.24;
 
+import {ForkTestBase} from "./base/ForkTestBase.sol";
+
 import {DAO} from "@aragon/osx/core/dao/DAO.sol";
-import {DaoUnauthorized} from "@aragon/osx/core/utils/auth.sol";
+import {DaoUnauthorized} from "@aragon/osx-commons-contracts/src/permission/auth/auth.sol";
 import {PluginRepo} from "@aragon/osx/framework/plugin/repo/PluginRepo.sol";
 
-import {AragonForkTest} from "./base/AragonForkTest.sol";
-import {MyPluginSetup} from "../src/MyPluginSetup.sol";
-import {MyPlugin} from "../src/MyPlugin.sol";
+import {MyUpgradeablePluginSetup} from "../src/MyUpgradeablePluginSetup.sol";
+import {MyUpgradeablePlugin} from "../src/MyUpgradeablePlugin.sol";
 import {NON_EMPTY_BYTES} from "./constants.sol";
 
-contract MyPluginFork is AragonForkTest {
+contract ForkTests is ForkTestBase {
     DAO internal dao;
-    MyPlugin internal plugin;
+    MyUpgradeablePlugin internal plugin;
     PluginRepo internal repo;
-    MyPluginSetup internal setup;
+    MyUpgradeablePluginSetup internal setup;
     uint256 internal constant NUMBER = 420;
     address internal unauthorised = vm.addr(12345678);
 
     function setUp() public virtual override {
         super.setUp();
-        setup = new MyPluginSetup();
+        setup = new MyUpgradeablePluginSetup();
         address _plugin;
 
         (dao, repo, _plugin) = deployDaoRepoPlugin(
-            "simplestorage4202934800",
+            "set-number-test-plugin-1234",
             address(setup),
             abi.encode(NUMBER)
         );
 
-        plugin = MyPlugin(_plugin);
+        plugin = MyUpgradeablePlugin(_plugin);
     }
 
     function test_e2e() public {

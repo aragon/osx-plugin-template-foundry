@@ -10,13 +10,13 @@ import {PluginRepoFactory} from "@aragon/osx/framework/plugin/repo/PluginRepoFac
 import {PluginRepo} from "@aragon/osx/framework/plugin/repo/PluginRepo.sol";
 import {PluginSetupRef} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessorHelpers.sol";
 
-import {AragonTest} from "./AragonTest.sol";
+import {TestBase} from "./TestBase.sol";
 
 bytes32 constant INSTALLATION_APPLIED_EVENT_SELECTOR = keccak256(
     "InstallationApplied(address,address,bytes32,bytes32)"
 );
 
-contract AragonForkTest is AragonTest {
+contract ForkTestBase is TestBase {
     DAOFactory internal immutable daoFactory =
         DAOFactory(vm.envOr("DAO_FACTORY_FORK_ADDRESS", address(0)));
     PluginRepoFactory internal immutable pluginRepoFactory =

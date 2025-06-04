@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.22;
 
-import {IPluginSetup, PluginSetup} from "@aragon/osx-commons-contracts/src/plugin/setup/PluginSetup.sol";
 import {DAO} from "@aragon/osx/core/dao/DAO.sol";
+import {IPluginSetup, PluginSetup} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessor.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {RATIO_BASE} from "@aragon/osx-commons-contracts/src/utils/math/Ratio.sol";
 import {ALICE_ADDRESS, BOB_ADDRESS, CAROL_ADDRESS, DAVID_ADDRESS} from "../constants.sol";
 import {Test} from "forge-std/Test.sol";
 
-contract AragonTest is Test {
+contract TestBase is Test {
     // Convenience actors for testing
     address immutable alice = ALICE_ADDRESS;
     address immutable bob = BOB_ADDRESS;

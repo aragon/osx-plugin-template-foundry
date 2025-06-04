@@ -1,31 +1,35 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.24;
 
+import {TestBase} from "./base/TestBase.sol";
+
 import {DAO} from "@aragon/osx/core/dao/DAO.sol";
+import {DaoUnauthorized} from "@aragon/osx-commons-contracts/src/permission/auth/auth.sol";
+import {MyUpgradeablePluginSetup} from "../src/MyUpgradeablePluginSetup.sol";
+import {MyUpgradeablePlugin} from "../src/MyUpgradeablePlugin.sol";
 
-import {DaoUnauthorized} from "@aragon/osx/core/utils/auth.sol";
-import {AragonTest} from "./base/AragonTest.sol";
-import {MyPluginSetup} from "../src/MyPluginSetup.sol";
-import {MyPlugin} from "../src/MyPlugin.sol";
-
-abstract contract MyPluginTest is AragonTest {
+abstract contract MyUpgradeablePluginTest is TestBase {
     DAO internal dao;
-    MyPlugin internal plugin;
-    MyPluginSetup internal setup;
+    MyUpgradeablePlugin internal plugin;
+    MyUpgradeablePluginSetup internal setup;
     uint256 internal constant NUMBER = 420;
 
     function setUp() public virtual {
-        setup = new MyPluginSetup();
+        setup = new MyUpgradeablePluginSetup();
         bytes memory setupData = abi.encode(NUMBER);
 
-        (DAO _dao, address _plugin) = createMockDaoWithPlugin(setup, setupData);
+        (DAO _dao, address _plugin) = deployDaoRepoPlugin(
+            "set-number-test-plugin-5555",
+            setup,
+            setupData
+        );
 
         dao = _dao;
-        plugin = MyPlugin(_plugin);
+        plugin = MyUpgradeablePlugin(_plugin);
     }
 }
 
-contract MyPluginInitializeTest is MyPluginTest {
+contract MyUpgradeablePluginInitializeTest is MyUpgradeablePluginTest {
     function setUp() public override {
         super.setUp();
     }
@@ -41,7 +45,7 @@ contract MyPluginInitializeTest is MyPluginTest {
     }
 }
 
-contract MyPluginStoreNumberTest is MyPluginTest {
+contract MyUpgradeablePluginStoreNumberTest is MyUpgradeablePluginTest {
     function setUp() public override {
         super.setUp();
     }
@@ -55,7 +59,13 @@ contract MyPluginStoreNumberTest is MyPluginTest {
     function test_reverts_if_not_auth() public {
         // error DaoUnauthorized({dao: address(_dao),  where: _where,  who: _who,permissionId: _permissionId });
         vm.expectRevert(
-            abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, address(this), keccak256("STORE_PERMISSION"))
+            abi.encodeWithSelector(
+                DaoUnauthorized.selector,
+                dao,
+                plugin,
+                address(this),
+                keccak256("STORE_PERMISSION")
+            )
         );
         plugin.storeNumber(69);
     }

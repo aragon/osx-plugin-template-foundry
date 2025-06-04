@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.17;
 
 import {Vm} from "forge-std/Test.sol";
 import {console2} from "forge-std/console2.sol";
@@ -90,7 +90,7 @@ contract ForkTestBase is TestBase {
 
         // Create DAO and record the creation event
         vm.recordLogs();
-        dao = daoFactory.createDao(daoSettings, installSettings);
+        (dao, ) = daoFactory.createDao(daoSettings, installSettings);
 
         // Find the plugin address
         Vm.Log[] memory entries = vm.getRecordedLogs();

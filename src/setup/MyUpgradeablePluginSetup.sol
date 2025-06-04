@@ -1,35 +1,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.17;
 
 import {IDAO} from "@aragon/osx/core/dao/DAO.sol";
 import {IPluginSetup, PluginSetup, PermissionLib} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessor.sol";
 import {ProxyLib} from "@aragon/osx-commons-contracts/src/utils/deployment/ProxyLib.sol";
-import {MyUpgradeablePlugin} from "./MyUpgradeablePlugin.sol";
+import {MyUpgradeablePlugin} from "../MyUpgradeablePlugin.sol";
 
 /// @title MyUpgradeablePluginSetup
 /// @dev Release 1, Build 1
 contract MyUpgradeablePluginSetup is PluginSetup {
-    /// @inheritdoc IPluginSetup
-    address public immutable implementation;
-
-    /// @notice A struct to contain the parameters used to deploy a new plugin.
-    struct InstallationParams {
-        /// @notice The address to grant STORE_PERMISSION_ID to
-        address setterAddress;
-        /// @notice The initial number stored when deploying the contract
-        uint256 initialNumber;
-    }
-
-    /// @notice A struct to contain the parameters used to uninstall a plugin.
-    struct UninstallationParams {
-        /// @notice The address to withdraw STORE_PERMISSION_ID from
-        address setterAddress;
-    }
-
-    constructor() {
-        implementation = address(new MyUpgradeablePlugin());
-    }
+    constructor() PluginSetup(address(new MyUpgradeablePlugin())) {}
 
     /// @inheritdoc IPluginSetup
     function prepareInstallation(
@@ -39,15 +20,16 @@ contract MyUpgradeablePluginSetup is PluginSetup {
         external
         returns (address plugin, PreparedSetupData memory preparedSetupData)
     {
-        InstallationParams memory _params = decodeInstallationParams(
-            _installationParams
-        );
+        (
+            address _setterAddress,
+            uint256 _initialNumber
+        ) = decodeInstallationParams(_installationParams);
 
         plugin = ProxyLib.deployUUPSProxy(
-            implementation,
+            implementation(),
             abi.encodeCall(
                 MyUpgradeablePlugin.initialize,
-                (IDAO(_dao), _params.initialNumber)
+                (IDAO(_dao), _initialNumber)
             )
         );
 
@@ -58,9 +40,10 @@ contract MyUpgradeablePluginSetup is PluginSetup {
         permissions[0] = PermissionLib.MultiTargetPermission({
             operation: PermissionLib.Operation.Grant,
             where: plugin,
-            who: _params.setterAddress,
+            who: _setterAddress,
             condition: PermissionLib.NO_CONDITION,
-            permissionId: implementation.STORE_PERMISSION_ID
+            permissionId: MyUpgradeablePlugin(implementation())
+                .STORE_PERMISSION_ID()
         });
 
         preparedSetupData.permissions = permissions;
@@ -68,16 +51,14 @@ contract MyUpgradeablePluginSetup is PluginSetup {
 
     /// @inheritdoc IPluginSetup
     function prepareUninstallation(
-        address _dao,
+        address, // _dao
         SetupPayload calldata _payload
     )
         external
         pure
         returns (PermissionLib.MultiTargetPermission[] memory permissions)
     {
-        UninstallationParams memory _params = decodeUninstallationParams(
-            _payload.data
-        );
+        address _setterAddress = decodeUninstallationParams(_payload.data);
 
         // Request reverting the granted permissions
         permissions = new PermissionLib.MultiTargetPermission[](1);
@@ -85,7 +66,7 @@ contract MyUpgradeablePluginSetup is PluginSetup {
         permissions[0] = PermissionLib.MultiTargetPermission({
             operation: PermissionLib.Operation.Revoke,
             where: _payload.plugin,
-            who: _params.setterAddress,
+            who: _setterAddress,
             condition: PermissionLib.NO_CONDITION,
             permissionId: keccak256("STORE_PERMISSION")
         });
@@ -93,31 +74,39 @@ contract MyUpgradeablePluginSetup is PluginSetup {
 
     // Parameter helpers
 
-    /// @notice Serialized the given installation parameters into encoded bytes
+    /// @notice Serialized the given parameters into encoded bytes
+    /// @param _setterAddress The address to grant STORE_PERMISSION_ID to
+    /// @param _initialNumber The initial number stored when deploying the contract
     function encodeInstallationParams(
-        InstallationParams memory installationParams
+        address _setterAddress,
+        uint256 _initialNumber
     ) external pure returns (bytes memory) {
-        return abi.encode(installationParams);
+        return abi.encode(_setterAddress, _initialNumber);
     }
 
-    /// @notice Decodes the given bytes into a parameters struct
+    /// @notice Decodes the given bytes into the individual parameters
+    /// @param _data The bytes array containing the encoded parameters
     function decodeInstallationParams(
         bytes memory _data
-    ) public pure returns (InstallationParams memory installationParams) {
-        installationParams = abi.decode(_data, (InstallationParams));
+    ) public pure returns (address _setterAddress, uint256 _initialNumber) {
+        (_setterAddress, _initialNumber) = abi.decode(
+            _data,
+            (address, uint256)
+        );
     }
 
-    /// @notice Serializes the given uninstallation parameters into encoded bytes
+    /// @notice Serializes the given parameters into encoded bytes
     function encodeUninstallationParams(
-        UninstallationParams memory uninstallationParams
+        address _setterAddress
     ) external pure returns (bytes memory) {
-        return abi.encode(uninstallationParams);
+        return abi.encode(_setterAddress);
     }
 
-    /// @notice Decodes the given bytes into a parameters struct
+    /// @notice Decodes the given bytes into the individual parameters
+    /// @param _data The bytes array containing the encoded parameters
     function decodeUninstallationParams(
         bytes memory _data
-    ) public pure returns (UninstallationParams memory uninstallationParams) {
-        uninstallationParams = abi.decode(_data, (UninstallationParams));
+    ) public pure returns (address _setterAddress) {
+        _setterAddress = abi.decode(_data, (address));
     }
 }

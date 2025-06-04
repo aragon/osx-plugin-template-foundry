@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.17;
 
 import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {IPluginSetup, PluginSetup} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessor.sol";

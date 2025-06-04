@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.24;
+
+pragma solidity ^0.8.17;
 
 import {IDAO} from "@aragon/osx/core/dao/DAO.sol";
 import {PluginUUPSUpgradeable} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessor.sol";
@@ -21,8 +22,8 @@ contract MyUpgradeablePlugin is PluginUUPSUpgradeable {
         number = _number;
     }
 
-    /// @notice Stores a new number to storage. Tha caller needs STORE_PERMISSION.
-    /// @param _number The number to be stored.
+    /// @notice Stores a new number to storage. The caller needs STORE_PERMISSION.
+    /// @param _number The new number to be stored.
     function setNumber(uint256 _number) external auth(STORE_PERMISSION_ID) {
         number = _number;
     }

@@ -3,6 +3,7 @@ pragma solidity ^0.8.17;
 
 import {ForkTestBase} from "../lib/ForkTestBase.sol";
 
+import {ForkBuilder} from "../builders/ForkBuilder.sol";
 import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {DaoUnauthorized} from "@aragon/osx-commons-contracts/src/permission/auth/auth.sol";
 import {PluginRepo} from "@aragon/osx/framework/plugin/repo/PluginRepo.sol";
@@ -16,23 +17,15 @@ contract MyUpgradeablePluginTest is ForkTestBase {
     MyUpgradeablePlugin internal plugin;
     PluginRepo internal repo;
     MyUpgradeablePluginSetup internal setup;
-    uint256 internal constant NUMBER = 420;
 
     function setUp() public virtual override {
         super.setUp();
         setup = new MyUpgradeablePluginSetup();
-        address _plugin;
 
-        (dao, repo, _plugin) = deployDaoRepoPlugin(
-            "set-number-test-plugin-1234",
-            address(setup),
-            setup.encodeInstallationParams(alice, NUMBER)
-        );
-
-        plugin = MyUpgradeablePlugin(_plugin);
+        (dao, repo, setup, plugin) = new ForkBuilder().build();
     }
 
-    function test_endToEndFlow() public {
+    function test_endToEndFlow1() public {
         // Check the Repo
         PluginRepo.Version memory version = repo.getLatestVersion(
             repo.latestRelease()
@@ -47,23 +40,70 @@ contract MyUpgradeablePluginTest is ForkTestBase {
         );
 
         // Check the plugin initialization
-        assertEq(plugin.number(), 420);
+        assertEq(plugin.number(), 1);
 
         // Store a new number
-        vm.prank(alice);
-        plugin.setNumber(69);
-
-        // Check that Bob cannot set  number
         vm.prank(bob);
+        plugin.setNumber(69);
+        assertEq(plugin.number(), 69);
+
+        // Check that Carol cannot set  number
+        vm.prank(carol);
         vm.expectRevert(
             abi.encodeWithSelector(
                 DaoUnauthorized.selector,
                 dao,
                 plugin,
                 bob,
-                plugin.STORE_PERMISSION_ID()
+                plugin.MANAGER_PERMISSION_ID()
             )
         );
+        plugin.setNumber(100);
+
+        assertEq(plugin.number(), 69);
+    }
+
+    function test_endToEndFlow2() public {
+        (dao, repo, setup, plugin) = new ForkBuilder()
+            .withDaoOwner(carol)
+            .withManager(david)
+            .withInitialNumber(200)
+            .build();
+
+        // Check the Repo
+        PluginRepo.Version memory version = repo.getLatestVersion(
+            repo.latestRelease()
+        );
+        assertEq(version.pluginSetup, address(setup));
+        assertEq(version.buildMetadata, NON_EMPTY_BYTES);
+
+        // Check the DAO
+        assertEq(
+            keccak256(bytes(dao.daoURI())),
+            keccak256(bytes("http://host/"))
+        );
+
+        // Check the plugin initialization
+        assertEq(plugin.number(), 200);
+
+        // Store a new number
+        vm.prank(carol);
         plugin.setNumber(69);
+        assertEq(plugin.number(), 69);
+
+        // Check that David cannot store a number
+        vm.prank(david);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                DaoUnauthorized.selector,
+                dao,
+                plugin,
+                bob,
+                plugin.MANAGER_PERMISSION_ID()
+            )
+        );
+        plugin.setNumber(50);
+
+        assertEq(plugin.number(), 69);
     }
 }

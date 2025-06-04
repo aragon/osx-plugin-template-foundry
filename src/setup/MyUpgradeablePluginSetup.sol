@@ -21,7 +21,7 @@ contract MyUpgradeablePluginSetup is PluginSetup {
         returns (address plugin, PreparedSetupData memory preparedSetupData)
     {
         (
-            address _setterAddress,
+            address _managerAddress,
             uint256 _initialNumber
         ) = decodeInstallationParams(_installationParams);
 
@@ -40,10 +40,10 @@ contract MyUpgradeablePluginSetup is PluginSetup {
         permissions[0] = PermissionLib.MultiTargetPermission({
             operation: PermissionLib.Operation.Grant,
             where: plugin,
-            who: _setterAddress,
+            who: _managerAddress,
             condition: PermissionLib.NO_CONDITION,
             permissionId: MyUpgradeablePlugin(implementation())
-                .STORE_PERMISSION_ID()
+                .MANAGER_PERMISSION_ID()
         });
 
         preparedSetupData.permissions = permissions;
@@ -58,7 +58,7 @@ contract MyUpgradeablePluginSetup is PluginSetup {
         pure
         returns (PermissionLib.MultiTargetPermission[] memory permissions)
     {
-        address _setterAddress = decodeUninstallationParams(_payload.data);
+        address _managerAddress = decodeUninstallationParams(_payload.data);
 
         // Request reverting the granted permissions
         permissions = new PermissionLib.MultiTargetPermission[](1);
@@ -66,30 +66,30 @@ contract MyUpgradeablePluginSetup is PluginSetup {
         permissions[0] = PermissionLib.MultiTargetPermission({
             operation: PermissionLib.Operation.Revoke,
             where: _payload.plugin,
-            who: _setterAddress,
+            who: _managerAddress,
             condition: PermissionLib.NO_CONDITION,
-            permissionId: keccak256("STORE_PERMISSION")
+            permissionId: keccak256("MANAGER_PERMISSION")
         });
     }
 
     // Parameter helpers
 
     /// @notice Serialized the given parameters into encoded bytes
-    /// @param _setterAddress The address to grant STORE_PERMISSION_ID to
+    /// @param _managerAddress The address to grant MANAGER_PERMISSION_ID to
     /// @param _initialNumber The initial number stored when deploying the contract
     function encodeInstallationParams(
-        address _setterAddress,
+        address _managerAddress,
         uint256 _initialNumber
     ) external pure returns (bytes memory) {
-        return abi.encode(_setterAddress, _initialNumber);
+        return abi.encode(_managerAddress, _initialNumber);
     }
 
     /// @notice Decodes the given bytes into the individual parameters
     /// @param _data The bytes array containing the encoded parameters
     function decodeInstallationParams(
         bytes memory _data
-    ) public pure returns (address _setterAddress, uint256 _initialNumber) {
-        (_setterAddress, _initialNumber) = abi.decode(
+    ) public pure returns (address _managerAddress, uint256 _initialNumber) {
+        (_managerAddress, _initialNumber) = abi.decode(
             _data,
             (address, uint256)
         );
@@ -97,16 +97,16 @@ contract MyUpgradeablePluginSetup is PluginSetup {
 
     /// @notice Serializes the given parameters into encoded bytes
     function encodeUninstallationParams(
-        address _setterAddress
+        address _managerAddress
     ) external pure returns (bytes memory) {
-        return abi.encode(_setterAddress);
+        return abi.encode(_managerAddress);
     }
 
     /// @notice Decodes the given bytes into the individual parameters
     /// @param _data The bytes array containing the encoded parameters
     function decodeUninstallationParams(
         bytes memory _data
-    ) public pure returns (address _setterAddress) {
-        _setterAddress = abi.decode(_data, (address));
+    ) public pure returns (address _managerAddress) {
+        _managerAddress = abi.decode(_data, (address));
     }
 }

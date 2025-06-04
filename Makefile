@@ -99,11 +99,11 @@ test: export ETHERSCAN_API_KEY=
 
 .PHONY: test
 test: ## Run unit tests, locally
-	forge test $(VERBOSITY) --no-match-path ./test/*Fork*
+	forge test $(VERBOSITY) --no-match-path ./test/fork-tests/*
 
 .PHONY: test-fork
 test-fork: ## Run fork tests, using RPC_URL
-	forge test $(VERBOSITY) --match-path ./test/*Fork*
+	forge test $(VERBOSITY) --match-path ./test/fork-tests/*
 
 test-coverage: report/index.html ## Generate an HTML coverage report under ./report
 	@which open > /dev/null && open report/index.html || true

@@ -1,0 +1,94 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity ^0.8.17;
+
+import {TestBase} from "../lib/TestBase.sol";
+
+import {DAO} from "@aragon/osx/core/dao/DAO.sol";
+import {MyUpgradeablePlugin} from "../../src/MyUpgradeablePlugin.sol";
+import {MyUpgradeablePluginSetup} from "../../src/setup/MyUpgradeablePluginSetup.sol";
+import {ProxyLib} from "@aragon/osx-commons-contracts/src/utils/deployment/ProxyLib.sol";
+
+contract SimpleBuilder is TestBase {
+    address immutable DAO_BASE = address(new DAO());
+    address immutable UPGRADEABLE_PLUGIN_BASE =
+        address(new MyUpgradeablePlugin());
+
+    // Parameters to override
+    address daoOwner = alice; // Used for testing purposes only
+    address[] managers = [bob];
+    uint256 initialNumber = 1;
+
+    // Override methods
+    function withDaoOwner(address _newOwner) public returns (SimpleBuilder) {
+        daoOwner = _newOwner;
+        return this;
+    }
+
+    function withManagers(
+        address[] memory _newManagers
+    ) public returns (SimpleBuilder) {
+        for (uint256 i = 0; i < _newManagers.length; i++) {
+            managers.push(_newManagers[i]);
+        }
+        return this;
+    }
+
+    function withInitialNumber(uint256 _number) public returns (SimpleBuilder) {
+        initialNumber = _number;
+        return this;
+    }
+
+    /// @dev Creates a DAO with the given orchestration settings.
+    /// @dev The setup is done on block/timestamp 0 and tests should be made on block/timestamp 1 or later.
+    function build() public returns (DAO dao, MyUpgradeablePlugin plugin) {
+        // Deploy the DAO with `this` as root
+        dao = DAO(
+            payable(
+                ProxyLib.deployUUPSProxy(
+                    address(DAO_BASE),
+                    abi.encodeCall(
+                        DAO.initialize,
+                        ("", address(this), address(0x0), "")
+                    )
+                )
+            )
+        );
+
+        // Plugin
+        plugin = MyUpgradeablePlugin(
+            ProxyLib.deployUUPSProxy(
+                address(UPGRADEABLE_PLUGIN_BASE),
+                abi.encodeCall(
+                    MyUpgradeablePlugin.initialize,
+                    (dao, initialNumber)
+                )
+            )
+        );
+
+        // Grant permissions
+        if (managers.length > 0) {
+            for (uint256 i = 0; i < managers.length; i++) {
+                dao.grant(
+                    address(plugin),
+                    managers[i],
+                    plugin.MANAGER_PERMISSION_ID()
+                );
+            }
+        } else {
+            // Set alice as the manager if no managers are defined
+            dao.grant(address(plugin), alice, plugin.MANAGER_PERMISSION_ID());
+        }
+
+        // Move DAO ownership to the owner for testing
+        dao.grant(address(dao), daoOwner, dao.ROOT_PERMISSION_ID());
+        dao.revoke(address(dao), address(this), dao.ROOT_PERMISSION_ID());
+
+        // Labels
+        vm.label(address(dao), "DAO");
+        vm.label(address(plugin), "MyUpgradeablePlugin");
+
+        // Moving forward to avoid proposal creations failing or getVotes() giving inconsistent values
+        vm.roll(block.number + 1);
+        vm.warp(block.timestamp + 1);
+    }
+}

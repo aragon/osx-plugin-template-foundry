@@ -7,9 +7,10 @@ import {PluginUUPSUpgradeable} from "@aragon/osx/framework/plugin/setup/PluginSe
 
 /// @title My Upgradeable Plugin
 /// @notice A plugin that exposes a permissioned function to store a number.
-/// @dev In order to call setNumber() the caller needs to hold the STORE_PERMISSION
+/// @dev In order to call setNumber() the caller needs to hold the MANAGER_PERMISSION
 contract MyUpgradeablePlugin is PluginUUPSUpgradeable {
-    bytes32 public constant STORE_PERMISSION_ID = keccak256("STORE_PERMISSION");
+    bytes32 public constant MANAGER_PERMISSION_ID =
+        keccak256("MANAGER_PERMISSION");
 
     /// @dev Added in build 1
     uint256 public number;
@@ -22,9 +23,9 @@ contract MyUpgradeablePlugin is PluginUUPSUpgradeable {
         number = _number;
     }
 
-    /// @notice Stores a new number to storage. The caller needs STORE_PERMISSION.
+    /// @notice Stores a new number to storage. The caller needs MANAGER_PERMISSION.
     /// @param _number The new number to be stored.
-    function setNumber(uint256 _number) external auth(STORE_PERMISSION_ID) {
+    function setNumber(uint256 _number) external auth(MANAGER_PERMISSION_ID) {
         number = _number;
     }
 }

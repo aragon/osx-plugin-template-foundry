@@ -3,6 +3,7 @@ pragma solidity ^0.8.17;
 
 import {TestBase} from "./lib/TestBase.sol";
 
+import {SimpleBuilder} from "./builders/SimpleBuilder.sol";
 import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {DaoUnauthorized} from "@aragon/osx-commons-contracts/src/permission/auth/auth.sol";
 import {MyUpgradeablePluginSetup} from "../src/setup/MyUpgradeablePluginSetup.sol";
@@ -12,20 +13,9 @@ abstract contract MyUpgradeablePluginTest is TestBase {
     DAO internal dao;
     MyUpgradeablePlugin internal plugin;
     MyUpgradeablePluginSetup internal setup;
-    uint256 internal constant NUMBER = 420;
 
     function setUp() public virtual {
-        setup = new MyUpgradeablePluginSetup();
-        bytes memory setupData = abi.encode(NUMBER);
-
-        (DAO _dao, address _plugin) = deployDaoRepoPlugin(
-            "set-number-test-plugin-5555",
-            setup,
-            setupData
-        );
-
-        dao = _dao;
-        plugin = MyUpgradeablePlugin(_plugin);
+        (dao, plugin) = new SimpleBuilder().withInitialNumber(123).build();
     }
 }
 
@@ -34,9 +24,9 @@ contract MyUpgradeablePluginInitializeTest is MyUpgradeablePluginTest {
         super.setUp();
     }
 
-    function test_initialize() public {
+    function test_initialize() public view {
         assertEq(address(plugin.dao()), address(dao));
-        assertEq(plugin.number(), NUMBER);
+        assertEq(plugin.number(), 123);
     }
 
     function test_reverts_if_reinitialized() public {
@@ -51,22 +41,55 @@ contract MyUpgradeablePluginStoreNumberTest is MyUpgradeablePluginTest {
     }
 
     function test_store_number() public {
-        vm.prank(address(dao));
-        plugin.storeNumber(69);
+        address[] memory managers = new address[](2);
+        managers[0] = alice;
+        managers[1] = bob;
+
+        (dao, plugin) = new SimpleBuilder()
+            .withDaoOwner(david)
+            .withInitialNumber(100)
+            .withManagers(managers)
+            .build();
+
+        vm.prank(alice);
+        plugin.setNumber(69);
         assertEq(plugin.number(), 69);
+
+        vm.prank(bob);
+        plugin.setNumber(123);
+        assertEq(plugin.number(), 123);
     }
 
     function test_reverts_if_not_auth() public {
+        address[] memory managers = new address[](2);
+        managers[0] = alice;
+        managers[1] = bob;
+
         // error DaoUnauthorized({dao: address(_dao),  where: _where,  who: _who,permissionId: _permissionId });
+        vm.prank(carol);
         vm.expectRevert(
             abi.encodeWithSelector(
                 DaoUnauthorized.selector,
                 dao,
                 plugin,
                 address(this),
-                keccak256("STORE_PERMISSION")
+                keccak256("MANAGER_PERMISSION")
             )
         );
-        plugin.storeNumber(69);
+        plugin.setNumber(0);
+        assertEq(plugin.number(), 69);
+
+        vm.prank(david);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                DaoUnauthorized.selector,
+                dao,
+                plugin,
+                address(this),
+                keccak256("MANAGER_PERMISSION")
+            )
+        );
+        plugin.setNumber(50);
+        assertEq(plugin.number(), 69);
     }
 }

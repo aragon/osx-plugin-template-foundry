@@ -15,8 +15,6 @@ contract TestBase is Test {
     address immutable david = DAVID_ADDRESS;
     address immutable randomAddress = vm.addr(1234567890);
 
-    address immutable DAO_BASE = address(new DAO());
-
     constructor() {
         vm.label(alice, "Alice");
         vm.label(bob, "Bob");

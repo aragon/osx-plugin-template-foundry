@@ -11,7 +11,6 @@ import {PluginSetupRef} from "@aragon/osx/framework/plugin/setup/PluginSetupProc
 import {MyUpgradeablePlugin} from "../../src/MyUpgradeablePlugin.sol";
 import {MyUpgradeablePluginSetup} from "../../src/setup/MyUpgradeablePluginSetup.sol";
 import {NON_EMPTY_BYTES} from "../constants.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract ForkBuilder is ForkTestBase {
     address immutable DAO_BASE = address(new DAO());
@@ -53,7 +52,7 @@ contract ForkBuilder is ForkTestBase {
         // Prepare a plugin repo with an initial version and subdomain
         bytes memory pluginRepoSubdomain = abi.encodePacked(
             "my-upgradeable-plugin-",
-            Strings.toString(block.timestamp)
+            vm.toString(block.timestamp)
         );
         pluginSetup = new MyUpgradeablePluginSetup();
         pluginRepo = pluginRepoFactory.createPluginRepoWithFirstVersion({

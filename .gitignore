@@ -2,8 +2,6 @@
 cache
 coverage
 out
-logs
-artifacts
 
 # Files
 *.env

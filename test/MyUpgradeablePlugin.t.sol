@@ -72,12 +72,12 @@ contract MyUpgradeablePluginStoreNumberTest is MyUpgradeablePluginTest {
                 DaoUnauthorized.selector,
                 dao,
                 plugin,
-                address(this),
+                carol,
                 keccak256("MANAGER_PERMISSION")
             )
         );
         plugin.setNumber(0);
-        assertEq(plugin.number(), 69);
+        assertEq(plugin.number(), 123);
 
         vm.prank(david);
         vm.expectRevert(
@@ -85,11 +85,11 @@ contract MyUpgradeablePluginStoreNumberTest is MyUpgradeablePluginTest {
                 DaoUnauthorized.selector,
                 dao,
                 plugin,
-                address(this),
+                david,
                 keccak256("MANAGER_PERMISSION")
             )
         );
         plugin.setNumber(50);
-        assertEq(plugin.number(), 69);
+        assertEq(plugin.number(), 123);
     }
 }

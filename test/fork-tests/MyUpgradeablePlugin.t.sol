@@ -54,7 +54,7 @@ contract MyUpgradeablePluginTest is ForkTestBase {
                 DaoUnauthorized.selector,
                 dao,
                 plugin,
-                bob,
+                carol,
                 plugin.MANAGER_PERMISSION_ID()
             )
         );
@@ -98,7 +98,7 @@ contract MyUpgradeablePluginTest is ForkTestBase {
                 DaoUnauthorized.selector,
                 dao,
                 plugin,
-                bob,
+                david,
                 plugin.MANAGER_PERMISSION_ID()
             )
         );

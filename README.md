@@ -122,6 +122,16 @@ In order to accommodate a wide range of cases, this repo provides comprehensive 
 
 Edit `DEPLOYMENT_SCRIPT` in `Makefile` to point to the deployment script of your choice.
 
+### DAO builders (for testing)
+
+- [Simple builder](./test/builders/SimpleBuilder.sol)
+  - It creates a simple DAO with the available plugin(s) installed
+  - It uses convenient defaults while allowing to override when needed
+- [Fork Builder](./test/builders/ForkBuilder.sol)
+  - It returns a full DAO setup with the available plugin(s) installed
+  - It creates a network fork and uses the configured `DAO_FACTORY_ADDRESS` and `PLUGIN_REPO_FACTORY_ADDRESS` for simulating deployments
+  - Like before, it uses convenient defaults while allowing to override when needed
+
 ## Testing 🔍
 
 Using `make`:
@@ -187,7 +197,7 @@ Testing lifecycle:
 $ make sync-tests
 ```
 
-Each yaml file will generate (or sync) a solidity test file with functions ready to be implemented. It will also generate a human readable summary in [TEST_TREE.md](./TEST_TREE.md) file.
+Each yaml file will generate (or sync) a solidity test file with functions ready to be implemented. It will also generate a human readable summary in [TESTS.md](./TESTS.md) file.
 
 ### Testing with a local OSx
 

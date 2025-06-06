@@ -61,9 +61,7 @@ contract MyUpgradeablePluginStoreNumberTest is MyUpgradeablePluginTest {
     }
 
     function test_reverts_if_not_auth() public {
-        address[] memory managers = new address[](2);
-        managers[0] = alice;
-        managers[1] = bob;
+        (dao, plugin) = new SimpleBuilder().withDaoOwner(alice).build();
 
         // error DaoUnauthorized({dao: address(_dao),  where: _where,  who: _who,permissionId: _permissionId });
         vm.prank(carol);
@@ -77,7 +75,7 @@ contract MyUpgradeablePluginStoreNumberTest is MyUpgradeablePluginTest {
             )
         );
         plugin.setNumber(0);
-        assertEq(plugin.number(), 123);
+        assertEq(plugin.number(), 1);
 
         vm.prank(david);
         vm.expectRevert(
@@ -90,6 +88,16 @@ contract MyUpgradeablePluginStoreNumberTest is MyUpgradeablePluginTest {
             )
         );
         plugin.setNumber(50);
-        assertEq(plugin.number(), 123);
+        assertEq(plugin.number(), 1);
+
+        // Grant the missing permission
+        vm.startPrank(alice);
+        dao.grant(address(plugin), david, plugin.MANAGER_PERMISSION_ID());
+        vm.stopPrank();
+
+        // OK
+        vm.prank(david);
+        plugin.setNumber(50);
+        assertEq(plugin.number(), 50);
     }
 }

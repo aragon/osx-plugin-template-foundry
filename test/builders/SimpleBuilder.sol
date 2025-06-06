@@ -41,14 +41,14 @@ contract SimpleBuilder is TestBase {
     /// @dev Creates a DAO with the given orchestration settings.
     /// @dev The setup is done on block/timestamp 0 and tests should be made on block/timestamp 1 or later.
     function build() public returns (DAO dao, MyUpgradeablePlugin plugin) {
-        // Deploy the DAO with `this` as root
+        // Deploy the DAO with `this` as ROOT
         dao = DAO(
             payable(
                 ProxyLib.deployUUPSProxy(
                     address(DAO_BASE),
                     abi.encodeCall(
                         DAO.initialize,
-                        ("", address(this), address(0x0), "")
+                        ("", daoOwner, address(0x0), "")
                     )
                 )
             )
@@ -65,7 +65,9 @@ contract SimpleBuilder is TestBase {
             )
         );
 
-        // Grant permissions
+        vm.startPrank(daoOwner);
+
+        // Grant plugin permissions
         if (managers.length > 0) {
             for (uint256 i = 0; i < managers.length; i++) {
                 dao.grant(
@@ -75,19 +77,17 @@ contract SimpleBuilder is TestBase {
                 );
             }
         } else {
-            // Set alice as the manager if no managers are defined
+            // Set alice as the plugin manager if no managers are defined
             dao.grant(address(plugin), alice, plugin.MANAGER_PERMISSION_ID());
         }
 
-        // Move DAO ownership to the owner for testing
-        dao.grant(address(dao), daoOwner, dao.ROOT_PERMISSION_ID());
-        dao.revoke(address(dao), address(this), dao.ROOT_PERMISSION_ID());
+        vm.stopPrank();
 
         // Labels
         vm.label(address(dao), "DAO");
         vm.label(address(plugin), "MyUpgradeablePlugin");
 
-        // Moving forward to avoid proposal creations failing or getVotes() giving inconsistent values
+        // Moving forward to avoid collisions
         vm.roll(block.number + 1);
         vm.warp(block.timestamp + 1);
     }

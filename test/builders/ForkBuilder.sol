@@ -18,15 +18,8 @@ contract ForkBuilder is ForkTestBase {
         address(new MyUpgradeablePlugin());
 
     // Add your own parameters here
-    address daoOwner = alice; // Used for testing purposes only
     address manager = bob;
     uint256 initialNumber = 1;
-
-    // Add your own builder overrides here
-    function withDaoOwner(address _newOwner) public returns (ForkBuilder) {
-        daoOwner = _newOwner;
-        return this;
-    }
 
     function withManager(address _manager) public returns (ForkBuilder) {
         manager = _manager;
@@ -67,7 +60,7 @@ contract ForkBuilder is ForkTestBase {
         DAOFactory.DAOSettings memory daoSettings = DAOFactory.DAOSettings({
             trustedForwarder: address(0),
             daoURI: "http://host/",
-            subdomain: "mockdao888",
+            subdomain: "",
             metadata: ""
         });
 
@@ -87,8 +80,7 @@ contract ForkBuilder is ForkTestBase {
             data: pluginInstallData
         });
 
-        // Create DAO with the plugin and record the creation event
-        vm.recordLogs();
+        // Create DAO with the plugin
         DAOFactory.InstalledPlugin[] memory installedPlugins;
         (dao, installedPlugins) = daoFactory.createDao(
             daoSettings,
@@ -96,18 +88,11 @@ contract ForkBuilder is ForkTestBase {
         );
         plugin = MyUpgradeablePlugin(installedPlugins[0].plugin);
 
-        // Grant permissions
-        dao.grant(address(plugin), manager, plugin.MANAGER_PERMISSION_ID());
-
-        // Move DAO ownership to the owner for testing
-        dao.grant(address(dao), daoOwner, dao.ROOT_PERMISSION_ID());
-        dao.revoke(address(dao), address(this), dao.ROOT_PERMISSION_ID());
-
         // Labels
         vm.label(address(dao), "DAO");
         vm.label(address(plugin), "MyUpgradeablePlugin");
 
-        // Moving forward to avoid proposal creations failing or getVotes() giving inconsistent values
+        // Moving forward to avoid collisions
         vm.roll(block.number + 1);
         vm.warp(block.timestamp + 1);
     }

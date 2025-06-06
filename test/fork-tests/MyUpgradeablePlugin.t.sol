@@ -47,8 +47,7 @@ contract MyUpgradeablePluginTest is ForkTestBase {
         plugin.setNumber(69);
         assertEq(plugin.number(), 69);
 
-        // Check that Carol cannot set  number
-        vm.prank(carol);
+        // Check that Carol cannot set number
         vm.expectRevert(
             abi.encodeWithSelector(
                 DaoUnauthorized.selector,
@@ -58,6 +57,7 @@ contract MyUpgradeablePluginTest is ForkTestBase {
                 plugin.MANAGER_PERMISSION_ID()
             )
         );
+        vm.prank(carol);
         plugin.setNumber(100);
 
         assertEq(plugin.number(), 69);
@@ -65,7 +65,6 @@ contract MyUpgradeablePluginTest is ForkTestBase {
 
     function test_endToEndFlow2() public {
         (dao, repo, setup, plugin) = new ForkBuilder()
-            .withDaoOwner(carol)
             .withManager(david)
             .withInitialNumber(200)
             .build();
@@ -87,23 +86,22 @@ contract MyUpgradeablePluginTest is ForkTestBase {
         assertEq(plugin.number(), 200);
 
         // Store a new number
-        vm.prank(carol);
+        vm.prank(david);
         plugin.setNumber(69);
         assertEq(plugin.number(), 69);
 
-        // Check that David cannot store a number
-        vm.prank(david);
+        // Check that Carol cannot store a number
         vm.expectRevert(
             abi.encodeWithSelector(
                 DaoUnauthorized.selector,
                 dao,
                 plugin,
-                david,
+                carol,
                 plugin.MANAGER_PERMISSION_ID()
             )
         );
+        vm.prank(carol);
         plugin.setNumber(50);
-
         assertEq(plugin.number(), 69);
     }
 }

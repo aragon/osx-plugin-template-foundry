@@ -27,16 +27,6 @@ contract ForkTestBase is TestBase {
 
         // Start the fork
         vm.createSelectFork(vm.envString("RPC_URL"));
-
-        console2.log(
-            "======================== E2E SETUP ======================"
-        );
-        console2.log("Forking from: ", vm.envString("FORKING_NETWORK"));
-        console2.log("DaoFactory:   ", address(daoFactory));
-        console2.log("RepoFactory:  ", address(pluginRepoFactory));
-        console2.log(
-            "========================================================="
-        );
     }
 
     /// @notice Fetches the latest tag from the PluginRepo

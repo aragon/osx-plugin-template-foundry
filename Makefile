@@ -7,8 +7,11 @@ SHELL:=/bin/bash
 
 # CONSTANTS
 
+# NOTE: Choose the appropriate deployment script
+DEPLOYMENT_SCRIPT := script/DeploySimple.s.sol:DeploySimpleScript
+# DEPLOYMENT_SCRIPT := script/DeployDaoWithPlugins.s.sol:DeployDaoWithPluginsScript
+
 SOLC_VERSION := $(shell cat foundry.toml | grep solc | cut -d= -f2 | xargs echo || echo "0.8.28")
-DEPLOY_DAO_WITH_PLUGINS_SCRIPT := script/DeployDaoWithPlugins.s.sol:DeployDaoWithPluginsScript
 SUPPORTED_VERIFIERS := etherscan blockscout sourcify routescan-mainnet routescan-testnet
 MAKE_TEST_TREE_CMD := deno run ./script/make-test-tree.ts
 VERIFY_CONTRACTS_SCRIPT := script/verify-contracts.sh
@@ -179,7 +182,7 @@ predeploy: export SIMULATE=true
 .PHONY: predeploy
 predeploy: ## Simulate a protocol deployment
 	@echo "Simulating the deployment"
-	forge script $(DEPLOY_DAO_WITH_PLUGINS_SCRIPT) \
+	forge script $(DEPLOYMENT_SCRIPT) \
 		--rpc-url $(RPC_URL) \
 		$(VERBOSITY)
 
@@ -187,7 +190,7 @@ predeploy: ## Simulate a protocol deployment
 deploy: test ## Deploy the protocol, verify the source code and write to ./artifacts
 	@echo "Starting the deployment"
 	@mkdir -p $(LOGS_FOLDER) $(ARTIFACTS_FOLDER)
-	forge script $(DEPLOY_DAO_WITH_PLUGINS_SCRIPT) \
+	forge script $(DEPLOYMENT_SCRIPT) \
 		--rpc-url $(RPC_URL) \
 		--retries 10 \
 		--delay 8 \
@@ -201,7 +204,7 @@ deploy: test ## Deploy the protocol, verify the source code and write to ./artif
 resume: test ## Retry the last deployment transactions, verify the code and write to ./artifacts
 	@echo "Retrying the deployment"
 	@mkdir -p $(LOGS_FOLDER) $(ARTIFACTS_FOLDER)
-	forge script $(DEPLOY_DAO_WITH_PLUGINS_SCRIPT) \
+	forge script $(DEPLOYMENT_SCRIPT) \
 		--rpc-url $(RPC_URL) \
 		--retries 10 \
 		--delay 8 \

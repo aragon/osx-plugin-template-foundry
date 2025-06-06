@@ -10,6 +10,8 @@ This template is designed to help get developers up and running in a few minutes
 - **Examples**: Example plugins and scripts to showcase the most typical scenarios.
 - **Testing environment**: A set of tools to help you test your new DAO deployment.
 
+A few variants and options are provided for convenience, while keeping the template as lean as possible. [See below](#template-variants);
+
 ## Prerequisites 📋
 - [Foundry](https://getfoundry.sh/)
 - Git
@@ -22,11 +24,13 @@ To get started, clone this repository and run the initial commands:
 
 ```bash
 git clone https://github.com/aragon/osx-plugin-template-foundry my-plugin
-cd my-plugin
-cp .env.example
+cd my-plugin && rm -Rf .git && git init .
+cp .env.example .env
 make init
 forge build
 ```
+
+Edit `.env` to match your desired network and settings.
 
 ### Installing dependencies
 
@@ -99,6 +103,24 @@ Next, set the values of `.env` according to your environment.
 Run `make init`:
 - It ensures that the dependencies are installed
 - It runs a first compilation of the project
+
+## Template Variants
+
+In order to accommodate a wide range of cases, this repo provides comprehensive examples for:
+
+### Plugin types
+
+- [UUPS upgradeable plugin](./src/MyUpgradeablePlugin.sol)
+- Cloneable plugin
+- Static plugin
+
+### Deployment flows
+
+- [Deploying a plugin repository](./script/DeploySimple.s.sol) (simple)
+- [Deploying a DAO with plugin(s) installed](./script/DeployDaoWithPlugins.s.sol)
+- Deploying a DAO with plugin(s) via a Factory (trustless)
+
+Edit `DEPLOYMENT_SCRIPT` in `Makefile` to point to the deployment script of your choice.
 
 ## Testing 🔍
 

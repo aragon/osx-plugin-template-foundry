@@ -13,7 +13,20 @@ import {hashHelpers, PluginSetupRef} from "@aragon/osx/framework/plugin/setup/Pl
 import {MyUpgradeablePlugin} from "../src/MyUpgradeablePlugin.sol";
 import {MyUpgradeablePluginSetup} from "../src/setup/MyUpgradeablePluginSetup.sol";
 
-/// @notice This contract deploys a new DAO and installs the plugin(s) on it
+/**
+This script performs the following tasks:
+- Deploys a new PluginRepo for each available plugin
+- Publishes a new version of each plugin (release 1, build 1)
+- Deploys the DAO
+- Installs the available plugins on it
+- If no maintainer was defined for the plugin repo, it sets the new DAO as the maintaner
+
+NOTE:
+
+This script is not suitable for sensitive deployments with high value at stake.
+- The deployer may be the temporary maintainer of the plugin repo.
+- Use the factory variant instead.
+*/
 contract DeployDaoWithPluginsScript is Script {
     address deployer;
     PluginRepoFactory pluginRepoFactory;
@@ -44,7 +57,7 @@ contract DeployDaoWithPluginsScript is Script {
     }
 
     function setUp() public {
-        // Pick the contract addresses from
+        // Pick the contract addresses from:
         // https://github.com/aragon/osx/blob/main/packages/artifacts/src/addresses.json
 
         pluginRepoFactory = PluginRepoFactory(
@@ -71,6 +84,7 @@ contract DeployDaoWithPluginsScript is Script {
             "PLUGIN_REPO_MAINTAINER_ADDRESS",
             address(0)
         );
+        vm.label(pluginRepoMaintainerAddress, "Maintainer");
     }
 
     function run() public broadcast {
@@ -111,7 +125,7 @@ contract DeployDaoWithPluginsScript is Script {
             );
     }
 
-    function getDAOSettings()
+    function getNewDAOSettings()
         public
         view
         returns (DAOFactory.DAOSettings memory)
@@ -119,12 +133,13 @@ contract DeployDaoWithPluginsScript is Script {
         return DAOFactory.DAOSettings(address(0), "", daoEnsSubdomain, "");
     }
 
-    function getInstallPluginSettings()
+    function getNewPluginSettings()
         public
         view
         returns (DAOFactory.PluginSettings[] memory installPluginSettings)
     {
-        // Hardcoded setting for simplicity
+        // NOTE: Your plugin settings come here
+        // Hardcoded for simplicity
         uint256 initialNumber = 50;
         bytes memory pluginSettingsData = myUpgradeablePluginSetup
             .encodeInstallationParams(address(dao), initialNumber);
@@ -142,10 +157,10 @@ contract DeployDaoWithPluginsScript is Script {
 
     function deployDaoWithPlugins() public {
         // Prepare the DAO and plugin install settings
-        DAOFactory.DAOSettings memory daoSettings = getDAOSettings();
+        DAOFactory.DAOSettings memory daoSettings = getNewDAOSettings();
 
         DAOFactory.PluginSettings[]
-            memory installPluginSettings = getInstallPluginSettings();
+            memory installPluginSettings = getNewPluginSettings();
 
         // Create the DAO with the requested plugins installed
         DAOFactory.InstalledPlugin[] memory _installedPlugins;
@@ -189,7 +204,7 @@ contract DeployDaoWithPluginsScript is Script {
         console2.log("");
         console2.log("MyUpgradeablePlugin:");
         console2.log(
-            "- Plugin address:            ",
+            "- Installed plugin:          ",
             address(installedPlugins[0])
         );
         console2.log(

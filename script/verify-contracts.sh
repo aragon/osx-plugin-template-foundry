@@ -1,14 +1,15 @@
 #!/bin/bash
 
-# Script to verify all contracts from the latest 'Deploy.s.sol' script run
+# This script is a fallback for cases where multiple block explorers need to be targeted.
+# It reads and verifies all contracts from the latest 'Deploy.s.sol' script run
 # on a single, specified block explorer.
 # It reads deployment details from the corresponding run-latest.json broadcast file.
 
 # Required command-line arguments:
 # $1: Chain ID (e.g., 11155111 for Sepolia)
-# $2: Explorer Type ("etherscan", "blockscout", "sourcify")
-# $3: Explorer API URL (required for "etherscan" & "blockscout", can be empty for "sourcify")
-# $4: Explorer API Key (optional, can be empty)
+# $2: Explorer Type ("etherscan", "blockscout", "sourcify", "custom")
+# $3: Explorer API URL (optional for "sourcify")
+# $4: Explorer API Key (optional)
 
 # Optional Environment Variables:
 # COMPILER_VERSION:        Specify if contracts were compiled with a non-default version.
@@ -26,8 +27,9 @@ usage() {
   echo "Usage:"
   echo "  $(basename "$0") <chain_id> <explorer_type> <explorer_api_url> [explorer_api_key]"
   echo
-  echo "Example (Etherscan/Routescan):"
+  echo "Example (Etherscan or compatible):"
   echo "  $(basename "$0") 11155111 etherscan https://api-sepolia.etherscan.io/api YOUR_ETHERSCAN_KEY"
+  echo "  $(basename "$0") 43113 custom https://api.routescan.io/v2/network/testnet/evm/43113/etherscan ''"
   echo
   echo "Example (Blockscout):"
   echo "  $(basename "$0") 100 blockscout https://blockscout.com/xdai/mainnet/api YOUR_BLOCKSCOUT_KEY"
@@ -35,7 +37,7 @@ usage() {
   echo "Example (Sourcify):"
   echo "  $(basename "$0") 11155111 sourcify \"\" \"\""
   echo
-  echo "Explorer Types: 'etherscan', 'blockscout', 'sourcify'"
+  echo "Explorer Types: 'etherscan', 'blockscout', 'sourcify', 'custom'"
   echo "API URL and Key are not used for 'sourcify' type but placeholders might be needed if your Makefile passes them."
   echo ""
   echo "Optional Environment Variables:"
@@ -108,12 +110,12 @@ verify_contract() {
   local verify_args=()
 
   case "$EXPLORER_TYPE" in
-    etherscan)
+    etherscan | custom)
       if [[ -z "$EXPLORER_API_URL" ]]; then
         echo "Error: API URL is required for etherscan type."
         return 1 # Indicate failure for this specific verification
       fi
-      verify_args+=(--verifier etherscan)
+      verify_args+=(--verifier $EXPLORER_TYPE)
       verify_args+=(--verifier-url "$EXPLORER_API_URL")
       if [[ -n "$EXPLORER_API_KEY" ]]; then
         verify_args+=(--etherscan-api-key \"$EXPLORER_API_KEY\")
@@ -151,7 +153,7 @@ verify_contract() {
   verify_args+=("$contract_address")
   verify_args+=("$contract_verification_path")
 
-  echo "forge verify-contract ${verify_args[*]}"
+  echo "forge verify-contract --watch ${verify_args[*]}"
   echo
   if ETHERSCAN_API_KEY="$EXPLORER_API_KEY" forge verify-contract "${verify_args[@]}" ; then
     echo "[SUCCESS] ${contract_name} (${EXPLORER_TYPE})"

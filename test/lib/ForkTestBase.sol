@@ -14,19 +14,15 @@ import {TestBase} from "./TestBase.sol";
 
 contract ForkTestBase is TestBase {
     DAOFactory internal immutable daoFactory =
-        DAOFactory(vm.envOr("DAO_FACTORY_FORK_ADDRESS", address(0)));
+        DAOFactory(vm.envOr("DAO_FACTORY_ADDRESS", address(0)));
     PluginRepoFactory internal immutable pluginRepoFactory =
-        PluginRepoFactory(
-            vm.envOr("PLUGIN_REPO_FACTORY_FORK_ADDRESS", address(0))
-        );
+        PluginRepoFactory(vm.envOr("PLUGIN_REPO_FACTORY_ADDRESS", address(0)));
 
     function setUp() public virtual {
         if (address(daoFactory) == address(0)) {
-            revert("Please, set DAO_FACTORY_FORK_ADDRESS on your .env file");
+            revert("Please, set DAO_FACTORY_ADDRESS on your .env file");
         } else if (address(pluginRepoFactory) == address(0)) {
-            revert(
-                "Please, set PLUGIN_REPO_FACTORY_FORK_ADDRESS on your .env file"
-            );
+            revert("Please, set PLUGIN_REPO_FACTORY_ADDRESS on your .env file");
         }
 
         // Start the fork

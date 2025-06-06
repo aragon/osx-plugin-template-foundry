@@ -50,7 +50,7 @@ contract ForkBuilder is ForkTestBase {
         )
     {
         // Prepare a plugin repo with an initial version and subdomain
-        bytes memory pluginRepoSubdomain = abi.encodePacked(
+        string memory pluginRepoSubdomain = string.concat(
             "my-upgradeable-plugin-",
             vm.toString(block.timestamp)
         );

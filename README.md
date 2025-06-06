@@ -28,6 +28,27 @@ make init
 forge build
 ```
 
+### Installing dependencies
+
+```sh
+forge install <github-org/repo-name>  # replace accordingly
+
+# Use the version you need
+cd lib/<repo-name>
+git checkout v1.9.0
+
+# Commit the version to use
+cd -
+git add lib/<repo-name>
+git commit -m"Using repo-name v1.9.0"
+```
+
+Add the new package to `remappings.txt`:
+
+```txt
+@organiation/repo-name/=lib/repo-name
+```
+
 ### Using the Makefile
 
 The `Makefile` is the target launcher of the project. It's the recommended way to operate the repository. It manages the env variables of common tasks and executes only the steps that need to be run.

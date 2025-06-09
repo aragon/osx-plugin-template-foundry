@@ -3,27 +3,20 @@
 pragma solidity ^0.8.17;
 
 import {DAO, IDAO, Action} from "@aragon/osx/core/dao/DAO.sol";
-import {PluginUUPSUpgradeable} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessor.sol";
+import {Plugin} from "@aragon/osx-commons-contracts/src/plugin/Plugin.sol";
 
-/// @title My Upgradeable Plugin
+/// @title My Static Plugin
 /// @notice A plugin that exposes a permissioned function to store a number and a function that makes the DAO execute an action.
 /// @dev In order to call setNumber() the caller needs to hold the MANAGER_PERMISSION
 /// @dev In order for resetDaoMetadata() to work, the plugin needs to hold EXECUTE_PERMISSION_ID on the DAO
-contract MyUpgradeablePlugin is PluginUUPSUpgradeable {
+contract MyStaticPlugin is Plugin {
     bytes32 public constant MANAGER_PERMISSION_ID =
         keccak256("MANAGER_PERMISSION");
 
-    /// @dev Added in build 1
     uint256 public number;
 
-    /// @notice Initializes the plugin when build 1 is installed.
     /// @param _initialNumber The number to be stored.
-    function initialize(
-        IDAO _dao,
-        uint256 _initialNumber
-    ) external initializer {
-        __PluginUUPSUpgradeable_init(_dao);
-
+    constructor(IDAO _dao, uint256 _initialNumber) Plugin(_dao) {
         number = _initialNumber;
     }
 
@@ -50,9 +43,4 @@ contract MyUpgradeablePlugin is PluginUUPSUpgradeable {
 
         _dao.execute(_executionId, _actions, _failSafeMap);
     }
-
-    /// @notice This empty reserved space is put in place to allow future versions to add new variables
-    ///         without shifting down storage in the inheritance chain
-    ///         (see [OpenZeppelin's guide about storage gaps](https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps)).
-    uint256[49] private __gap;
 }

@@ -9,8 +9,6 @@ import {DAOFactory} from "@aragon/osx/framework/dao/DAOFactory.sol";
 import {PluginRepoFactory} from "@aragon/osx/framework/plugin/repo/PluginRepoFactory.sol";
 import {PluginRepo} from "@aragon/osx/framework/plugin/repo/PluginRepo.sol";
 import {hashHelpers, PluginSetupRef} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessorHelpers.sol";
-
-import {MyUpgradeablePlugin} from "../src/MyUpgradeablePlugin.sol";
 import {MyPluginSetup} from "../src/setup/MyPluginSetup.sol";
 
 /**
@@ -36,7 +34,7 @@ contract DeployDaoWithPluginsScript is Script {
     address pluginRepoMaintainerAddress;
 
     // Artifacts
-    PluginRepo myUpgradeablePluginRepo;
+    PluginRepo myPluginRepo;
     MyPluginSetup myPluginSetup;
     DAO dao;
     address[] installedPlugins;
@@ -60,6 +58,7 @@ contract DeployDaoWithPluginsScript is Script {
         // Pick the contract addresses from:
         // https://github.com/aragon/osx/blob/main/packages/artifacts/src/addresses.json
 
+        // Prepare the OSx factories for the current network
         pluginRepoFactory = PluginRepoFactory(
             vm.envAddress("PLUGIN_REPO_FACTORY_ADDRESS")
         );
@@ -68,18 +67,19 @@ contract DeployDaoWithPluginsScript is Script {
         daoFactory = DAOFactory(vm.envAddress("DAO_FACTORY_ADDRESS"));
         vm.label(address(daoFactory), "DAOFactory");
 
+        // Read the rest of environment variables
         daoEnsSubdomain = vm.envOr("DAO_ENS_SUBDOMAIN", string(""));
         pluginEnsSubdomain = vm.envOr("PLUGIN_ENS_SUBDOMAIN", string(""));
 
         // Using a random subdomain if empty
         if (bytes(pluginEnsSubdomain).length == 0) {
             pluginEnsSubdomain = string.concat(
-                "my-upgradeable-plugin-",
+                "my-test-plugin-",
                 vm.toString(block.timestamp)
             );
         }
 
-        // Using the DAO's address if empty
+        // Set the DAO as the maintainer (if empty)
         pluginRepoMaintainerAddress = vm.envOr(
             "PLUGIN_REPO_MAINTAINER_ADDRESS",
             address(0)
@@ -89,7 +89,7 @@ contract DeployDaoWithPluginsScript is Script {
 
     function run() public broadcast {
         // Publish the first version in a new plugin repo
-        deployMyUpgradeablePlugin();
+        deployPluginRepo();
 
         // Deploying the DAO
         deployDaoWithPlugins();
@@ -103,26 +103,26 @@ contract DeployDaoWithPluginsScript is Script {
         printDeployment();
     }
 
-    function deployMyUpgradeablePlugin() public {
+    function deployPluginRepo() public {
         // Plugin Setup (the installer)
         myPluginSetup = new MyPluginSetup();
 
-        // Publish the plugin in a new repo as release 1, build 1
         address _initialMaintainer = pluginRepoMaintainerAddress;
         if (_initialMaintainer == address(0)) {
-            // Own the repo temporarily
+            // NOTE: The deployer owns the repo temporarily
             // Transferring it to the DAO after it is created.
             _initialMaintainer = deployer;
         }
 
-        myUpgradeablePluginRepo = pluginRepoFactory
-            .createPluginRepoWithFirstVersion(
-                pluginEnsSubdomain,
-                address(myPluginSetup),
-                _initialMaintainer,
-                " ",
-                " "
-            );
+        // The new plugin repository
+        // Publish the plugin in a new repo as release 1, build 1
+        myPluginRepo = pluginRepoFactory.createPluginRepoWithFirstVersion(
+            pluginEnsSubdomain,
+            address(myPluginSetup),
+            _initialMaintainer,
+            " ",
+            " "
+        );
     }
 
     function getNewDAOSettings()
@@ -150,7 +150,7 @@ contract DeployDaoWithPluginsScript is Script {
         // MyUpgradeablePlugin params
         installPluginSettings = new DAOFactory.PluginSettings[](1);
         installPluginSettings[0] = DAOFactory.PluginSettings(
-            PluginSetupRef(tag, myUpgradeablePluginRepo),
+            PluginSetupRef(tag, myPluginRepo),
             pluginSettingsData
         );
     }
@@ -176,17 +176,17 @@ contract DeployDaoWithPluginsScript is Script {
 
     function transferRepoOwnership() public {
         // Set the DAO as a maintainer
-        myUpgradeablePluginRepo.grant(
-            address(myUpgradeablePluginRepo),
+        myPluginRepo.grant(
+            address(myPluginRepo),
             address(dao),
-            myUpgradeablePluginRepo.MAINTAINER_PERMISSION_ID()
+            myPluginRepo.MAINTAINER_PERMISSION_ID()
         );
 
         // Remove the deployer wallet as a maintainer
-        myUpgradeablePluginRepo.revoke(
-            address(myUpgradeablePluginRepo),
+        myPluginRepo.revoke(
+            address(myPluginRepo),
             deployer,
-            myUpgradeablePluginRepo.MAINTAINER_PERMISSION_ID()
+            myPluginRepo.MAINTAINER_PERMISSION_ID()
         );
 
         pluginRepoMaintainerAddress = address(dao);
@@ -207,10 +207,7 @@ contract DeployDaoWithPluginsScript is Script {
             "- Installed plugin:          ",
             address(installedPlugins[0])
         );
-        console2.log(
-            "- Plugin repo:               ",
-            address(myUpgradeablePluginRepo)
-        );
+        console2.log("- Plugin repo:               ", address(myPluginRepo));
         console2.log(
             "- Plugin repo maintainer:    ",
             pluginRepoMaintainerAddress

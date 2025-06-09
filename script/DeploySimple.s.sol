@@ -7,8 +7,6 @@ import {Vm} from "forge-std/Vm.sol";
 import {PluginRepoFactory} from "@aragon/osx/framework/plugin/repo/PluginRepoFactory.sol";
 import {PluginRepo} from "@aragon/osx/framework/plugin/repo/PluginRepo.sol";
 import {hashHelpers, PluginSetupRef} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessorHelpers.sol";
-
-import {MyUpgradeablePlugin} from "../src/MyUpgradeablePlugin.sol";
 import {MyPluginSetup} from "../src/setup/MyPluginSetup.sol";
 
 /**
@@ -23,7 +21,7 @@ contract DeploySimpleScript is Script {
     address pluginRepoMaintainerAddress;
 
     // Artifacts
-    PluginRepo myUpgradeablePluginRepo;
+    PluginRepo myPluginRepo;
     MyPluginSetup myPluginSetup;
 
     modifier broadcast() {
@@ -45,17 +43,19 @@ contract DeploySimpleScript is Script {
         // Pick the contract addresses from
         // https://github.com/aragon/osx/blob/main/packages/artifacts/src/addresses.json
 
+        // Prepare the OSx factories for the current network
         pluginRepoFactory = PluginRepoFactory(
             vm.envAddress("PLUGIN_REPO_FACTORY_ADDRESS")
         );
         vm.label(address(pluginRepoFactory), "PluginRepoFactory");
 
+        // Read the rest of environment variables
         pluginEnsSubdomain = vm.envOr("PLUGIN_ENS_SUBDOMAIN", string(""));
 
         // Using a random subdomain if empty
         if (bytes(pluginEnsSubdomain).length == 0) {
             pluginEnsSubdomain = string.concat(
-                "my-upgradeable-plugin-",
+                "my-test-plugin-",
                 vm.toString(block.timestamp)
             );
         }
@@ -68,40 +68,30 @@ contract DeploySimpleScript is Script {
 
     function run() public broadcast {
         // Publish the first version in a new plugin repo
-        deployMyUpgradeablePlugin();
+        deployPluginRepo();
 
         // Done
         printDeployment();
     }
 
-    function deployMyUpgradeablePlugin() public {
-        // Plugin Setup (the installer)
+    function deployPluginRepo() public {
+        // Plugin setup (the installer)
         myPluginSetup = new MyPluginSetup();
 
+        // The new plugin repository
         // Publish the plugin in a new repo as release 1, build 1
-        address _initialMaintainer = pluginRepoMaintainerAddress;
-        if (_initialMaintainer == address(0)) {
-            // Own the repo temporarily
-            // Transferring it to the DAO after it is created.
-            _initialMaintainer = deployer;
-        }
-
-        myUpgradeablePluginRepo = pluginRepoFactory
-            .createPluginRepoWithFirstVersion(
-                pluginEnsSubdomain,
-                address(myPluginSetup),
-                _initialMaintainer,
-                " ",
-                " "
-            );
+        myPluginRepo = pluginRepoFactory.createPluginRepoWithFirstVersion(
+            pluginEnsSubdomain,
+            address(myPluginSetup),
+            pluginRepoMaintainerAddress,
+            " ",
+            " "
+        );
     }
 
     function printDeployment() public view {
         console2.log("MyUpgradeablePlugin:");
-        console2.log(
-            "- Plugin repo:               ",
-            address(myUpgradeablePluginRepo)
-        );
+        console2.log("- Plugin repo:               ", address(myPluginRepo));
         console2.log(
             "- Plugin repo maintainer:    ",
             pluginRepoMaintainerAddress

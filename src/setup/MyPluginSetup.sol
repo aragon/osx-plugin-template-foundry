@@ -6,13 +6,18 @@ import {IDAO, DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {IPluginSetup, PluginSetup, PermissionLib} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessor.sol";
 import {ProxyLib} from "@aragon/osx-commons-contracts/src/utils/deployment/ProxyLib.sol";
 
+// 3 Plugin types
 import {MyUpgradeablePlugin} from "../MyUpgradeablePlugin.sol";
 import {MyCloneablePlugin} from "../MyCloneablePlugin.sol";
 import {MyStaticPlugin} from "../MyStaticPlugin.sol";
 
 /// @title MyPluginSetup
+/// @notice Manages the installation and unintallation of the plugin on a DAO.
+/// @dev It can work with upgradeable, cloneable and static plugins
 /// @dev Release 1, Build 1
 contract MyPluginSetup is PluginSetup {
+    // TODO: Choose your plugin variant (if upgradeable or cloneabe are desired)
+    // constructor() PluginSetup(address(new MyCloneablePlugin())) {}
     constructor() PluginSetup(address(new MyUpgradeablePlugin())) {}
 
     /// @inheritdoc IPluginSetup
@@ -28,7 +33,7 @@ contract MyPluginSetup is PluginSetup {
             uint256 _initialNumber
         ) = decodeInstallationParams(_installationParams);
 
-        // TODO: Choose your plugin variant below
+        // TODO: Uncomment the code to deploy your desired plugin variant below
 
         // 1) Upgradeable plugin variant
         plugin = ProxyLib.deployUUPSProxy(

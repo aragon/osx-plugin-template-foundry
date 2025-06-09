@@ -2,14 +2,17 @@
 
 pragma solidity ^0.8.17;
 
-import {IDAO} from "@aragon/osx/core/dao/DAO.sol";
+import {IDAO, DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {IPluginSetup, PluginSetup, PermissionLib} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessor.sol";
 import {ProxyLib} from "@aragon/osx-commons-contracts/src/utils/deployment/ProxyLib.sol";
-import {MyUpgradeablePlugin} from "../MyUpgradeablePlugin.sol";
 
-/// @title MyUpgradeablePluginSetup
+import {MyUpgradeablePlugin} from "../MyUpgradeablePlugin.sol";
+import {MyCloneablePlugin} from "../MyCloneablePlugin.sol";
+import {MyStaticPlugin} from "../MyStaticPlugin.sol";
+
+/// @title MyPluginSetup
 /// @dev Release 1, Build 1
-contract MyUpgradeablePluginSetup is PluginSetup {
+contract MyPluginSetup is PluginSetup {
     constructor() PluginSetup(address(new MyUpgradeablePlugin())) {}
 
     /// @inheritdoc IPluginSetup
@@ -25,6 +28,9 @@ contract MyUpgradeablePluginSetup is PluginSetup {
             uint256 _initialNumber
         ) = decodeInstallationParams(_installationParams);
 
+        // TODO: Choose your plugin variant below
+
+        // 1) Upgradeable plugin variant
         plugin = ProxyLib.deployUUPSProxy(
             implementation(),
             abi.encodeCall(
@@ -33,10 +39,23 @@ contract MyUpgradeablePluginSetup is PluginSetup {
             )
         );
 
+        // 2) Cloneable plugin variant
+        // plugin = ProxyLib.deployMinimalProxy(
+        //     implementation(),
+        //     abi.encodeCall(
+        //         MyCloneablePlugin.initialize,
+        //         (IDAO(_dao), _initialNumber)
+        //     )
+        // );
+
+        // 3) Static plugin variant
+        // plugin = address(new MyStaticPlugin(IDAO(_dao), _initialNumber));
+
         // Request permissions
         PermissionLib.MultiTargetPermission[]
-            memory permissions = new PermissionLib.MultiTargetPermission[](1);
+            memory permissions = new PermissionLib.MultiTargetPermission[](2);
 
+        // _managerAddress has MANAGER_PERMISSION_ID on the plugin
         permissions[0] = PermissionLib.MultiTargetPermission({
             operation: PermissionLib.Operation.Grant,
             where: plugin,
@@ -46,29 +65,61 @@ contract MyUpgradeablePluginSetup is PluginSetup {
                 .MANAGER_PERMISSION_ID()
         });
 
+        // The pugin has EXECUTE_PERMISSION_ID on the DAO
+        permissions[1] = PermissionLib.MultiTargetPermission({
+            operation: PermissionLib.Operation.Grant,
+            where: _dao,
+            who: plugin,
+            condition: PermissionLib.NO_CONDITION,
+            permissionId: DAO(payable(_dao)).EXECUTE_PERMISSION_ID()
+        });
+
         preparedSetupData.permissions = permissions;
     }
 
+    // @dev NOTE: If you need to implement prepateUpdate():
+    // @dev Extend from PluginUpgradeableSetup instead of PluginSetup
+    // @dev Uncomment the function below
+
+    // /// @inheritdoc IPluginSetup
+    // function prepareUpdate(
+    //     address, // _dao
+    //     uint16, // _fromBuild
+    //     SetupPayload calldata //  _payload
+    // ) external override returns (bytes memory, PreparedSetupData memory) {
+    //     revert("No prior version to update from");
+    // }
+
     /// @inheritdoc IPluginSetup
     function prepareUninstallation(
-        address, // _dao
+        address _dao,
         SetupPayload calldata _payload
     )
         external
-        pure
+        view
         returns (PermissionLib.MultiTargetPermission[] memory permissions)
     {
         address _managerAddress = decodeUninstallationParams(_payload.data);
 
         // Request reverting the granted permissions
-        permissions = new PermissionLib.MultiTargetPermission[](1);
+        permissions = new PermissionLib.MultiTargetPermission[](2);
 
+        // _managerAddress has MANAGER_PERMISSION_ID on the plugin
         permissions[0] = PermissionLib.MultiTargetPermission({
             operation: PermissionLib.Operation.Revoke,
             where: _payload.plugin,
             who: _managerAddress,
             condition: PermissionLib.NO_CONDITION,
             permissionId: keccak256("MANAGER_PERMISSION")
+        });
+
+        // The pugin has EXECUTE_PERMISSION_ID on the DAO
+        permissions[1] = PermissionLib.MultiTargetPermission({
+            operation: PermissionLib.Operation.Revoke,
+            where: _dao,
+            who: _payload.plugin,
+            condition: PermissionLib.NO_CONDITION,
+            permissionId: DAO(payable(_dao)).EXECUTE_PERMISSION_ID()
         });
     }
 

@@ -36,11 +36,11 @@ contract MyUpgradeablePlugin is PluginUUPSUpgradeable {
     /// @notice Tells the DAO to execute an action
     /// @dev The plugin needs to have EXECUTE_PERMISSION_ID on the DAO
     function resetDaoMetadata() external {
+        // Example action(s):
+        // Encoding a call to `dao.setMetadata("")`
         Action[] memory _actions = new Action[](1);
         _actions[0].to = address(dao());
         _actions[0].data = abi.encodeCall(IDAO.setMetadata, (""));
-
-        DAO _dao = DAO(payable(address(dao())));
 
         // Can be any arbitrary value to identify the execution
         bytes32 _executionId = bytes32(block.timestamp);
@@ -48,6 +48,8 @@ contract MyUpgradeablePlugin is PluginUUPSUpgradeable {
         // 256 bit bitmap to indicate which actions might fail without reverting
         uint256 _failSafeMap = 0;
 
+        // Tell the DAO to execute the given action(s)
+        DAO _dao = DAO(payable(address(dao())));
         _dao.execute(_executionId, _actions, _failSafeMap);
     }
 

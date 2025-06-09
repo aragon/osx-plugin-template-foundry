@@ -9,7 +9,7 @@ import {PluginRepoFactory} from "@aragon/osx/framework/plugin/repo/PluginRepoFac
 import {PluginRepo} from "@aragon/osx/framework/plugin/repo/PluginRepo.sol";
 import {PluginSetupRef} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessorHelpers.sol";
 import {MyUpgradeablePlugin} from "../../src/MyUpgradeablePlugin.sol";
-import {MyUpgradeablePluginSetup} from "../../src/setup/MyUpgradeablePluginSetup.sol";
+import {MyPluginSetup} from "../../src/setup/MyPluginSetup.sol";
 import {NON_EMPTY_BYTES} from "../constants.sol";
 
 contract ForkBuilder is ForkTestBase {
@@ -38,7 +38,7 @@ contract ForkBuilder is ForkTestBase {
         returns (
             DAO dao,
             PluginRepo pluginRepo,
-            MyUpgradeablePluginSetup pluginSetup,
+            MyPluginSetup pluginSetup,
             MyUpgradeablePlugin plugin
         )
     {
@@ -47,7 +47,7 @@ contract ForkBuilder is ForkTestBase {
             "my-upgradeable-plugin-",
             vm.toString(block.timestamp)
         );
-        pluginSetup = new MyUpgradeablePluginSetup();
+        pluginSetup = new MyPluginSetup();
         pluginRepo = pluginRepoFactory.createPluginRepoWithFirstVersion({
             _subdomain: string(pluginRepoSubdomain),
             _pluginSetup: address(pluginSetup),

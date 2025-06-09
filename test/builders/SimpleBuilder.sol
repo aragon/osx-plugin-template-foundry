@@ -5,7 +5,7 @@ import {TestBase} from "../lib/TestBase.sol";
 
 import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {MyUpgradeablePlugin} from "../../src/MyUpgradeablePlugin.sol";
-import {MyUpgradeablePluginSetup} from "../../src/setup/MyUpgradeablePluginSetup.sol";
+import {MyPluginSetup} from "../../src/setup/MyPluginSetup.sol";
 import {ProxyLib} from "@aragon/osx-commons-contracts/src/utils/deployment/ProxyLib.sol";
 
 contract SimpleBuilder is TestBase {

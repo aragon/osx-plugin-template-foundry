@@ -9,7 +9,7 @@ import {PluginRepo} from "@aragon/osx/framework/plugin/repo/PluginRepo.sol";
 import {hashHelpers, PluginSetupRef} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessorHelpers.sol";
 
 import {MyUpgradeablePlugin} from "../src/MyUpgradeablePlugin.sol";
-import {MyUpgradeablePluginSetup} from "../src/setup/MyUpgradeablePluginSetup.sol";
+import {MyPluginSetup} from "../src/setup/MyPluginSetup.sol";
 
 /**
 This script performs the following tasks:
@@ -24,7 +24,7 @@ contract DeploySimpleScript is Script {
 
     // Artifacts
     PluginRepo myUpgradeablePluginRepo;
-    MyUpgradeablePluginSetup myUpgradeablePluginSetup;
+    MyPluginSetup myPluginSetup;
 
     modifier broadcast() {
         uint256 privKey = vm.envUint("DEPLOYMENT_PRIVATE_KEY");
@@ -76,7 +76,7 @@ contract DeploySimpleScript is Script {
 
     function deployMyUpgradeablePlugin() public {
         // Plugin Setup (the installer)
-        myUpgradeablePluginSetup = new MyUpgradeablePluginSetup();
+        myPluginSetup = new MyPluginSetup();
 
         // Publish the plugin in a new repo as release 1, build 1
         address _initialMaintainer = pluginRepoMaintainerAddress;
@@ -89,7 +89,7 @@ contract DeploySimpleScript is Script {
         myUpgradeablePluginRepo = pluginRepoFactory
             .createPluginRepoWithFirstVersion(
                 pluginEnsSubdomain,
-                address(myUpgradeablePluginSetup),
+                address(myPluginSetup),
                 _initialMaintainer,
                 " ",
                 " "

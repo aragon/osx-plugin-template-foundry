@@ -8,7 +8,7 @@ import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {DaoUnauthorized} from "@aragon/osx-commons-contracts/src/permission/auth/auth.sol";
 import {PluginRepo} from "@aragon/osx/framework/plugin/repo/PluginRepo.sol";
 
-import {MyUpgradeablePluginSetup} from "../../src/setup/MyUpgradeablePluginSetup.sol";
+import {MyPluginSetup} from "../../src/setup/MyPluginSetup.sol";
 import {MyUpgradeablePlugin} from "../../src/MyUpgradeablePlugin.sol";
 import {NON_EMPTY_BYTES} from "../constants.sol";
 
@@ -16,11 +16,11 @@ contract MyUpgradeablePluginTest is ForkTestBase {
     DAO internal dao;
     MyUpgradeablePlugin internal plugin;
     PluginRepo internal repo;
-    MyUpgradeablePluginSetup internal setup;
+    MyPluginSetup internal setup;
 
     function setUp() public virtual override {
         super.setUp();
-        setup = new MyUpgradeablePluginSetup();
+        setup = new MyPluginSetup();
 
         (dao, repo, setup, plugin) = new ForkBuilder().build();
     }

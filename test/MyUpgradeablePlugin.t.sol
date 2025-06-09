@@ -6,13 +6,13 @@ import {TestBase} from "./lib/TestBase.sol";
 import {SimpleBuilder} from "./builders/SimpleBuilder.sol";
 import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {DaoUnauthorized} from "@aragon/osx-commons-contracts/src/permission/auth/auth.sol";
-import {MyUpgradeablePluginSetup} from "../src/setup/MyUpgradeablePluginSetup.sol";
+import {MyPluginSetup} from "../src/setup/MyPluginSetup.sol";
 import {MyUpgradeablePlugin} from "../src/MyUpgradeablePlugin.sol";
 
 abstract contract MyUpgradeablePluginTest is TestBase {
     DAO internal dao;
     MyUpgradeablePlugin internal plugin;
-    MyUpgradeablePluginSetup internal setup;
+    MyPluginSetup internal setup;
 
     function setUp() public virtual {
         (dao, plugin) = new SimpleBuilder().withInitialNumber(123).build();

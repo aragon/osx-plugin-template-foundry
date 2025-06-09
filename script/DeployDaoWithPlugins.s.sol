@@ -11,7 +11,7 @@ import {PluginRepo} from "@aragon/osx/framework/plugin/repo/PluginRepo.sol";
 import {hashHelpers, PluginSetupRef} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessorHelpers.sol";
 
 import {MyUpgradeablePlugin} from "../src/MyUpgradeablePlugin.sol";
-import {MyUpgradeablePluginSetup} from "../src/setup/MyUpgradeablePluginSetup.sol";
+import {MyPluginSetup} from "../src/setup/MyPluginSetup.sol";
 
 /**
 This script performs the following tasks:
@@ -37,7 +37,7 @@ contract DeployDaoWithPluginsScript is Script {
 
     // Artifacts
     PluginRepo myUpgradeablePluginRepo;
-    MyUpgradeablePluginSetup myUpgradeablePluginSetup;
+    MyPluginSetup myPluginSetup;
     DAO dao;
     address[] installedPlugins;
 
@@ -105,7 +105,7 @@ contract DeployDaoWithPluginsScript is Script {
 
     function deployMyUpgradeablePlugin() public {
         // Plugin Setup (the installer)
-        myUpgradeablePluginSetup = new MyUpgradeablePluginSetup();
+        myPluginSetup = new MyPluginSetup();
 
         // Publish the plugin in a new repo as release 1, build 1
         address _initialMaintainer = pluginRepoMaintainerAddress;
@@ -118,7 +118,7 @@ contract DeployDaoWithPluginsScript is Script {
         myUpgradeablePluginRepo = pluginRepoFactory
             .createPluginRepoWithFirstVersion(
                 pluginEnsSubdomain,
-                address(myUpgradeablePluginSetup),
+                address(myPluginSetup),
                 _initialMaintainer,
                 " ",
                 " "
@@ -141,7 +141,7 @@ contract DeployDaoWithPluginsScript is Script {
         // NOTE: Your plugin settings come here
         // Hardcoded for simplicity
         uint256 initialNumber = 50;
-        bytes memory pluginSettingsData = myUpgradeablePluginSetup
+        bytes memory pluginSettingsData = myPluginSetup
             .encodeInstallationParams(address(dao), initialNumber);
 
         // Install from release 1, build 1

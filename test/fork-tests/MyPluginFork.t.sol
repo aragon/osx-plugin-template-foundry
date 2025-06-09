@@ -12,7 +12,7 @@ import {MyPluginSetup} from "../../src/setup/MyPluginSetup.sol";
 import {MyUpgradeablePlugin} from "../../src/MyUpgradeablePlugin.sol";
 import {NON_EMPTY_BYTES} from "../constants.sol";
 
-contract MyUpgradeablePluginTest is ForkTestBase {
+contract MyPluginForkTest is ForkTestBase {
     DAO internal dao;
     MyUpgradeablePlugin internal plugin;
     PluginRepo internal repo;

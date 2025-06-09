@@ -41,7 +41,7 @@ contract SimpleBuilder is TestBase {
     /// @dev Creates a DAO with the given orchestration settings.
     /// @dev The setup is done on block/timestamp 0 and tests should be made on block/timestamp 1 or later.
     function build() public returns (DAO dao, MyUpgradeablePlugin plugin) {
-        // Deploy the DAO with `this` as ROOT
+        // Deploy the DAO with `daoOwner` as ROOT
         dao = DAO(
             payable(
                 ProxyLib.deployUUPSProxy(

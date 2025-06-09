@@ -6,10 +6,11 @@ import {IDAO, DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {IPluginSetup, PluginSetup, PermissionLib} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessor.sol";
 import {ProxyLib} from "@aragon/osx-commons-contracts/src/utils/deployment/ProxyLib.sol";
 
-// 3 Plugin types
+// 3 Plugin types (use accordingly)
 import {MyUpgradeablePlugin} from "../MyUpgradeablePlugin.sol";
-import {MyCloneablePlugin} from "../MyCloneablePlugin.sol";
-import {MyStaticPlugin} from "../MyStaticPlugin.sol";
+
+// import {MyCloneablePlugin} from "../MyCloneablePlugin.sol";
+// import {MyStaticPlugin} from "../MyStaticPlugin.sol";
 
 /// @title MyPluginSetup
 /// @notice Manages the installation and unintallation of the plugin on a DAO.

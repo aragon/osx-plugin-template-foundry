@@ -7,16 +7,22 @@ This template is designed to help get developers up and running with OSx in a fe
 ## Features ✨
 
 - **Foundry**: Configured with the right dependencies and settings for Aragon OSx.
-- **Examples**: Example plugins and scripts to showcase the most typical scenarios.
-- **Testing environment**: A set of tools to help you test your new DAO deployment.
-
-A few variants of plugins, deployment scripts and testing builders are provided for convenience, while keeping the codebase as lean as possible. [See below](#template-variants);
+- **Versatile contract starters**: [See Template Variants below](#template-variants)
+- **Deployment scripts and factories**: Starter scripts for simple plugin publishing, as well as for custom DAO deployments.
+- **Flexible testing environment**: A set of tools to run unit tests, fork tests, describe use cases and build entire local deployments with ease.
+- **Code verification helpers**: Verify on multiple block explorers given the same deployment
+- **Streamlined action runner**: A self documented [makefile](#using-the-makefile) to manage the entire workflow
+- **Code snippets and examples**
 
 ## Prerequisites 📋
 - [Foundry](https://getfoundry.sh/)
 - Git
 - [Make](https://www.gnu.org/software/make/)
+
+Optional:
+
 - [Docker](https://www.docker.com) (recommended for deployment)
+- [Deno](https://deno.land)  (used to scaffold the test files)
 
 ## Getting Started 🏁
 

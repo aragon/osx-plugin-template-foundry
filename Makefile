@@ -138,17 +138,19 @@ sync-tests: $(TEST_TREE_FILES) ## Scaffold or sync test definitions into solidit
 		fi \
 	done
 
+	@make test-tree
+
 check-tests: $(TEST_TREE_FILES) ## Checks if the solidity test files are out of sync
 	bulloak check $^
 
-markdown-tests: $(TEST_TREE_MARKDOWN) ## Generates a markdown file with the test definitions rendered as a tree
+test-tree: $(TEST_TREE_MARKDOWN) ## Generates a markdown file with the test definitions
 
 # Generate single a markdown file with the test trees
 $(TEST_TREE_MARKDOWN): $(TEST_TREE_FILES)
 	@echo "[Markdown]   $(@)"
 	@echo "# Test tree definitions" > $@
 	@echo "" >> $@
-	@echo "Below is the graphical definition of the contract tests implemented on [the test folder](./test)" >> $@
+	@echo "Below is the graphical summary of the tests described within [test/*.t.yaml](./test)" >> $@
 	@echo "" >> $@
 
 	@for file in $^; do \
@@ -161,6 +163,8 @@ $(TEST_TREE_MARKDOWN): $(TEST_TREE_FILES)
 # Internal dependencies and transformations
 
 $(TEST_TREE_FILES): $(TEST_SOURCE_FILES)
+
+%.tree: %.t.yaml
 	@if ! command -v deno >/dev/null 2>&1; then \
 	    echo "Note: deno can be installed by running 'curl -fsSL https://deno.land/install.sh | sh'" ; \
 	    exit 1 ; \
@@ -170,7 +174,6 @@ $(TEST_TREE_FILES): $(TEST_SOURCE_FILES)
 	    exit 1 ; \
 	fi
 
-%.tree: %.t.yaml
 	@for file in $^; do \
 	  echo "[Convert]    $$file -> $${file%.t.yaml}.tree" ; \
 		cat $$file | $(MAKE_TEST_TREE_CMD) > $${file%.t.yaml}.tree ; \

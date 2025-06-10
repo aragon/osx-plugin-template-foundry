@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
-pragma solidity ^0.8.17;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.28;
 
 import {TestBase} from "./lib/TestBase.sol";
 
@@ -9,7 +9,7 @@ import {DaoUnauthorized} from "@aragon/osx-commons-contracts/src/permission/auth
 import {MyPluginSetup} from "../src/setup/MyPluginSetup.sol";
 import {MyUpgradeablePlugin} from "../src/MyUpgradeablePlugin.sol";
 
-contract MyUpgradeablePluginInitializeTest is TestBase {
+contract MyPluginTest is TestBase {
     DAO dao;
     MyUpgradeablePlugin plugin;
 
@@ -18,48 +18,47 @@ contract MyUpgradeablePluginInitializeTest is TestBase {
         (dao, plugin) = new SimpleBuilder().withInitialNumber(123).build();
     }
 
-    function test_initialize() public view {
+    modifier givenThePluginIsAlreadyInitialized() {
+        _;
+    }
+
+    function test_RevertWhen_CallingInitialize()
+        external
+        givenThePluginIsAlreadyInitialized
+    {
+        // It Should revert
+        vm.expectRevert("Initializable: contract is already initialized");
+        plugin.initialize(dao, 69);
+    }
+
+    function test_WhenCallingDaoAndNumber()
+        external
+        view
+        givenThePluginIsAlreadyInitialized
+    {
+        // It Should return the right values
         assertEq(address(plugin.dao()), address(dao));
         assertEq(plugin.number(), 123);
     }
 
-    function test_reverts_if_reinitialized() public {
-        vm.expectRevert("Initializable: contract is already initialized");
-        plugin.initialize(dao, 69);
-    }
-}
-
-contract MyUpgradeablePluginStoreNumberTest is TestBase {
-    DAO dao;
-    MyUpgradeablePlugin plugin;
-
-    function setUp() public {
-        // Customize the Builder to feature more default values and overrides
-        (dao, plugin) = new SimpleBuilder().withInitialNumber(123).build();
-    }
-
-    function test_store_number() public {
+    modifier givenTheCallerHasNoPermission() {
         address[] memory managers = new address[](2);
         managers[0] = alice;
         managers[1] = bob;
 
         (dao, plugin) = new SimpleBuilder()
-            .withDaoOwner(david)
-            .withInitialNumber(100)
+            .withDaoOwner(alice)
             .withManagers(managers)
             .build();
 
-        vm.prank(alice);
-        plugin.setNumber(69);
-        assertEq(plugin.number(), 69);
-
-        vm.prank(bob);
-        plugin.setNumber(123);
-        assertEq(plugin.number(), 123);
+        _;
     }
 
-    function test_reverts_if_not_auth() public {
-        (dao, plugin) = new SimpleBuilder().withDaoOwner(alice).build();
+    function test_RevertWhen_CallingSetNumber()
+        external
+        givenTheCallerHasNoPermission
+    {
+        // It Should revert
 
         // error DaoUnauthorized({dao: address(_dao),  where: _where,  who: _who,permissionId: _permissionId });
         vm.prank(carol);
@@ -97,5 +96,43 @@ contract MyUpgradeablePluginStoreNumberTest is TestBase {
         vm.prank(david);
         plugin.setNumber(50);
         assertEq(plugin.number(), 50);
+    }
+
+    modifier givenTheCallerHasPermission() {
+        address[] memory managers = new address[](2);
+        managers[0] = alice;
+        managers[1] = bob;
+
+        (dao, plugin) = new SimpleBuilder()
+            .withInitialNumber(100)
+            .withManagers(managers)
+            .build();
+
+        _;
+    }
+
+    function test_WhenCallingSetNumber2() external givenTheCallerHasPermission {
+        // It should update the stored number
+
+        vm.prank(alice);
+        plugin.setNumber(69);
+
+        vm.prank(bob);
+        plugin.setNumber(123);
+    }
+
+    function test_WhenCallingNumber() external {
+        // It Should return the right value
+        (, plugin) = new SimpleBuilder().build();
+        assertEq(plugin.number(), 1);
+
+        plugin.setNumber(69);
+        assertEq(plugin.number(), 69);
+
+        plugin.setNumber(123);
+        assertEq(plugin.number(), 123);
+
+        plugin.setNumber(0x1133557799);
+        assertEq(plugin.number(), 0x1133557799);
     }
 }

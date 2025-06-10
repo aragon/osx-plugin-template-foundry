@@ -153,39 +153,29 @@ Run `make test` or `forge test -vvv` to check the logic's accordance to the spec
 
 ### Writing tests
 
-Optionally, test hierarchies can be described using yaml files like [ProtocolFactory.t.yaml](./test/ProtocolFactory.t.yaml), which will be transformed into solidity files by running `make sync-tests`, thanks to [bulloak](https://github.com/alexfertel/bulloak).
+Optionally, tests with hierarchies can be described using yaml files like [MyPlugin.t.yaml](./test/MyPlugin.t.yaml), which will be transformed into solidity files by running `make sync-tests`, thanks to [bulloak](https://github.com/alexfertel/bulloak).
 
-Create a file with `.t.yaml` extension within the `test` folder and describe a hierarchy as follows:
+Create a file with `.t.yaml` extension within the `test` folder and describe a hierarchy with a structure like this:
 
 ```yaml
-# MyTest.t.yaml
+# MyPlugin.t.yaml
 
-MyContractTest:
-- given: proposal exists
-  comment: Comment here
-  and:
-  - given: proposal is in the last stage
+MyPluginTest:
+  - given: The caller has no permission
+    comment: The caller needs MANAGER_PERMISSION_ID
     and:
-
-    - when: proposal can advance
-      then:
-      - it: Should return true
-
-    - when: proposal cannot advance
-      then:
-      - it: Should return false
-
-  - when: proposal is not in the last stage
+      - when: Calling setNumber()
+        then:
+          - it: Should revert
+  - given: The caller has permission
+    comment: The caller holds MANAGER_PERMISSION_ID
+    and:
+      - when: Calling setNumber()
+        then:
+          - it: It should update the stored number
+  - when: Calling number()
     then:
-    - it: should do A
-      comment: This is an important remark
-    - it: should do B
-    - it: should do C
-
-- when: proposal doesn't exist
-  comment: Testing edge cases here
-  then:
-  - it: should revert
+      - it: Should return the right value
 ```
 
 Then use `make` to automatically sync the described branches into solidity test files.

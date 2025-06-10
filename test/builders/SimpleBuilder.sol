@@ -15,7 +15,7 @@ contract SimpleBuilder is TestBase {
 
     // Parameters to override
     address daoOwner; // Used for testing purposes only
-    address[] managers = [bob];
+    address[] managers; // daoOwner will be used if eventually empty
     uint256 initialNumber = 1;
 
     constructor() {
@@ -83,8 +83,12 @@ contract SimpleBuilder is TestBase {
                 );
             }
         } else {
-            // Set alice as the plugin manager if no managers are defined
-            dao.grant(address(plugin), alice, plugin.MANAGER_PERMISSION_ID());
+            // Set the daoOwner as the plugin manager if no managers are defined
+            dao.grant(
+                address(plugin),
+                daoOwner,
+                plugin.MANAGER_PERMISSION_ID()
+            );
         }
 
         vm.stopPrank();

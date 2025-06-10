@@ -180,7 +180,7 @@ $(TEST_TREE_FILES): $(TEST_SOURCE_FILES)
 
 ## Deployment targets:
 
-predeploy: export SIMULATE=true
+predeploy: export SIMULATION=true
 
 .PHONY: predeploy
 predeploy: ## Simulate a protocol deployment

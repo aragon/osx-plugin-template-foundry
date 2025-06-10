@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 import {Script, console2} from "forge-std/Script.sol";
-import {Vm} from "forge-std/Vm.sol";
+import {stdJson} from "forge-std/StdJson.sol";
 
 import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {DAOFactory} from "@aragon/osx/framework/dao/DAOFactory.sol";
@@ -25,6 +25,8 @@ This script is suitable for sensitive deployments with high value at stake.
 - The deployment logic and parameters can be fully verified, end to end
 */
 contract DeployViaFactoryScript is Script {
+    using stdJson for string;
+
     // Deployment parameters (env)
     DAOFactory daoFactory;
     PluginRepoFactory pluginRepoFactory;
@@ -115,6 +117,11 @@ contract DeployViaFactoryScript is Script {
 
         // Done
         printDeployment();
+
+        // Write the addresses to a JSON file
+        if (!vm.envOr("SIMULATION", false)) {
+            writeJsonArtifacts();
+        }
     }
 
     function printDeployment() public view {
@@ -143,5 +150,38 @@ contract DeployViaFactoryScript is Script {
             string.concat(params.myPluginEnsSubdomain, ".plugin.dao.eth")
         );
         console2.log("");
+    }
+
+    function writeJsonArtifacts() internal {
+        DeploymentFactory.DeploymentParams memory params = factory.getParams();
+        DeploymentFactory.Deployment memory deployment = factory
+            .getDeployment();
+
+        string memory artifacts = "output";
+        artifacts.serialize("dao", address(deployment.dao));
+
+        artifacts.serialize("plugin", deployment.myPlugin);
+        artifacts.serialize("pluginRepo", address(deployment.myPluginRepo));
+        artifacts.serialize(
+            "pluginRepoMaintainer",
+            params.pluginRepoMaintainer
+        );
+        artifacts = artifacts.serialize(
+            "pluginEnsDomain",
+            string.concat(params.myPluginEnsSubdomain, ".plugin.dao.eth")
+        );
+
+        string memory networkName = vm.envString("NETWORK_NAME");
+        string memory filePath = string.concat(
+            vm.projectRoot(),
+            "/artifacts/deployment-",
+            networkName,
+            "-",
+            vm.toString(block.timestamp),
+            ".json"
+        );
+        artifacts.write(filePath);
+
+        console2.log("Deployment artifacts written to", filePath);
     }
 }

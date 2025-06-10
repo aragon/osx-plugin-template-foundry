@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 import {Script, console2} from "forge-std/Script.sol";
-import {Vm} from "forge-std/Vm.sol";
+import {stdJson} from "forge-std/StdJson.sol";
 
 import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {DAOFactory} from "@aragon/osx/framework/dao/DAOFactory.sol";
@@ -26,12 +26,14 @@ This script is not suitable for sensitive deployments with high value at stake.
 - Use the factory variant instead.
 */
 contract DeployDaoWithPluginsScript is Script {
+    using stdJson for string;
+
     address deployer;
     PluginRepoFactory pluginRepoFactory;
     DAOFactory daoFactory;
     string daoEnsSubdomain;
     string pluginEnsSubdomain;
-    address pluginRepoMaintainerAddress;
+    address pluginRepoMaintainer;
 
     // Artifacts
     PluginRepo myPluginRepo;
@@ -80,11 +82,11 @@ contract DeployDaoWithPluginsScript is Script {
         }
 
         // Set the DAO as the maintainer (if empty)
-        pluginRepoMaintainerAddress = vm.envOr(
+        pluginRepoMaintainer = vm.envOr(
             "PLUGIN_REPO_MAINTAINER_ADDRESS",
             address(0)
         );
-        vm.label(pluginRepoMaintainerAddress, "Maintainer");
+        vm.label(pluginRepoMaintainer, "Maintainer");
     }
 
     function run() public broadcast {
@@ -95,19 +97,24 @@ contract DeployDaoWithPluginsScript is Script {
         deployDaoWithPlugins();
 
         // Transfer the repo ownership to the DAO if no maintainer is defined
-        if (pluginRepoMaintainerAddress == address(0)) {
+        if (pluginRepoMaintainer == address(0)) {
             transferRepoOwnership();
         }
 
         // Done
         printDeployment();
+
+        // Write the addresses to a JSON file
+        if (!vm.envOr("SIMULATION", false)) {
+            writeJsonArtifacts();
+        }
     }
 
     function deployPluginRepo() public {
         // Plugin Setup (the installer)
         myPluginSetup = new MyPluginSetup();
 
-        address _initialMaintainer = pluginRepoMaintainerAddress;
+        address _initialMaintainer = pluginRepoMaintainer;
         if (_initialMaintainer == address(0)) {
             // NOTE: The deployer owns the repo temporarily
             // Transferring it to the DAO after it is created.
@@ -189,7 +196,7 @@ contract DeployDaoWithPluginsScript is Script {
             myPluginRepo.MAINTAINER_PERMISSION_ID()
         );
 
-        pluginRepoMaintainerAddress = address(dao);
+        pluginRepoMaintainer = address(dao);
     }
 
     function printDeployment() public view {
@@ -208,14 +215,44 @@ contract DeployDaoWithPluginsScript is Script {
             address(installedPlugins[0])
         );
         console2.log("- Plugin repo:               ", address(myPluginRepo));
-        console2.log(
-            "- Plugin repo maintainer:    ",
-            pluginRepoMaintainerAddress
-        );
+        console2.log("- Plugin repo maintainer:    ", pluginRepoMaintainer);
         console2.log(
             "- ENS:                       ",
             string.concat(pluginEnsSubdomain, ".plugin.dao.eth")
         );
         console2.log("");
+    }
+
+    function writeJsonArtifacts() internal {
+        string memory artifacts = "output";
+        artifacts.serialize("dao", address(dao));
+
+        if (bytes(daoEnsSubdomain).length > 0) {
+            artifacts.serialize(
+                "daoEnsDomain",
+                string.concat(daoEnsSubdomain, ".dao.eth")
+            );
+        }
+
+        artifacts.serialize("plugin", installedPlugins[0]);
+        artifacts.serialize("pluginRepo", address(myPluginRepo));
+        artifacts.serialize("pluginRepoMaintainer", pluginRepoMaintainer);
+        artifacts = artifacts.serialize(
+            "pluginEnsDomain",
+            string.concat(pluginEnsSubdomain, ".plugin.dao.eth")
+        );
+
+        string memory networkName = vm.envString("NETWORK_NAME");
+        string memory filePath = string.concat(
+            vm.projectRoot(),
+            "/artifacts/deployment-",
+            networkName,
+            "-",
+            vm.toString(block.timestamp),
+            ".json"
+        );
+        artifacts.write(filePath);
+
+        console2.log("Deployment artifacts written to", filePath);
     }
 }

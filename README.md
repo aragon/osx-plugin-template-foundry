@@ -2,7 +2,7 @@
 
 Welcome to the Foundry template for OSx plugins!
 
-This template is designed to help get developers up and running in a few minutes.
+This template is designed to help get developers up and running with OSx in a few minutes.
 
 ## Features ✨
 
@@ -10,13 +10,13 @@ This template is designed to help get developers up and running in a few minutes
 - **Examples**: Example plugins and scripts to showcase the most typical scenarios.
 - **Testing environment**: A set of tools to help you test your new DAO deployment.
 
-A few variants and options are provided for convenience, while keeping the template as lean as possible. [See below](#template-variants);
+A few variants of plugins, deployment scripts and testing builders are provided for convenience, while keeping the codebase as lean as possible. [See below](#template-variants);
 
 ## Prerequisites 📋
 - [Foundry](https://getfoundry.sh/)
 - Git
 - [Make](https://www.gnu.org/software/make/)
-- [Docker](https://www.docker.com) (optional)
+- [Docker](https://www.docker.com) (recommended for deployment)
 
 ## Getting Started 🏁
 
@@ -74,12 +74,13 @@ Testing lifecycle:
 
 - make sync-tests         Scaffold or sync test definitions into solidity tests
 - make check-tests        Checks if the solidity test files are out of sync
-- make markdown-tests     Generates a markdown file with the test definitions rendered as a tree
+- make test-tree          Generates a markdown file with the test definitions
 
 Deployment targets:
 
 - make predeploy          Simulate a protocol deployment
 - make deploy             Deploy the protocol, verify the source code and write to ./artifacts
+- make resume             Retry the last deployment transactions, verify the code and write to ./artifacts
 
 Verification:
 

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 import {Script, console2} from "forge-std/Script.sol";
-import {Vm} from "forge-std/Vm.sol";
+import {stdJson} from "forge-std/StdJson.sol";
 
 import {PluginRepoFactory} from "@aragon/osx/framework/plugin/repo/PluginRepoFactory.sol";
 import {PluginRepo} from "@aragon/osx/framework/plugin/repo/PluginRepo.sol";
@@ -15,6 +15,8 @@ This script performs the following tasks:
 - Publishes a new version of each plugin (release 1, build 1)
 */
 contract DeploySimpleScript is Script {
+    using stdJson for string;
+
     address deployer;
     PluginRepoFactory pluginRepoFactory;
     string pluginEnsSubdomain;
@@ -72,6 +74,11 @@ contract DeploySimpleScript is Script {
 
         // Done
         printDeployment();
+
+        // Write the addresses to a JSON file
+        if (!vm.envOr("SIMULATION", false)) {
+            writeJsonArtifacts();
+        }
     }
 
     function deployPluginRepo() public {
@@ -101,5 +108,31 @@ contract DeploySimpleScript is Script {
             string.concat(pluginEnsSubdomain, ".plugin.dao.eth")
         );
         console2.log("");
+    }
+
+    function writeJsonArtifacts() internal {
+        string memory artifacts = "output";
+        artifacts.serialize("pluginRepo", address(myPluginRepo));
+        artifacts.serialize(
+            "pluginRepoMaintainer",
+            pluginRepoMaintainerAddress
+        );
+        artifacts = artifacts.serialize(
+            "pluginEnsDomain",
+            string.concat(pluginEnsSubdomain, ".plugin.dao.eth")
+        );
+
+        string memory networkName = vm.envString("NETWORK_NAME");
+        string memory filePath = string.concat(
+            vm.projectRoot(),
+            "/artifacts/deployment-",
+            networkName,
+            "-",
+            vm.toString(block.timestamp),
+            ".json"
+        );
+        artifacts.write(filePath);
+
+        console2.log("Deployment artifacts written to", filePath);
     }
 }

@@ -21,7 +21,7 @@ This template is designed to help get developers up and running with OSx in a fe
 
 Optional:
 
-- [Docker](https://www.docker.com) (recommended for deployment)
+- [Docker](https://www.docker.com) (recommended for deploying)
 - [Deno](https://deno.land)  (used to scaffold the test files)
 
 ## Getting Started 🏁

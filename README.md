@@ -171,7 +171,7 @@ MyPluginTest:
 
 Nodes like `when` and `given` can be nested without limitations.
 
-Then use `make` to automatically sync the described branches into solidity test files.
+Then use `make sync-tests` to automatically sync the described branches into solidity test files.
 
 ```sh
 $ make
@@ -179,16 +179,16 @@ Testing lifecycle:
 # ...
 - make sync-tests       Scaffold or sync tree files into solidity tests
 - make check-tests      Checks if solidity files are out of sync
-- make markdown-tests   Generates a markdown file with the test definitions rendered as a tree
+- make test-tree        Generates a markdown file with the test definitions
 
 $ make sync-tests
 ```
 
-Each yaml file will generate (or sync) a solidity test file with functions ready to be implemented. They also generate a human readable summary in [TESTS.md](./TESTS.md).
+Each yaml file generates (or syncs) a solidity test file with functions ready to be implemented. They also generate a human readable summary in [TESTS.md](./TESTS.md).
 
 ### Testing with a local OSx
 
-You can deploy an in-memory, local OSx deployment to run your E2E tests on top of.
+You can deploy an in-memory, local OSx deployment to run your E2E tests on top of it.
 
 ```sh
 forge install aragon/protocol-factory
@@ -220,7 +220,7 @@ ProtocolFactory.Deployment memory deployment = factory.getDeployment();
 console.log("DaoFactory", deployment.daoFactory);
 ```
 
-You can even [customize your local OSx deployment](https://github.com/aragon/protocol-factory?tab=readme-ov-file#if-you-need-to-override-some-parameters) if needed.
+You can even [customize these OSx deployments](https://github.com/aragon/protocol-factory?tab=readme-ov-file#if-you-need-to-override-some-parameters) if needed.
 
 ## Deployment 🚀
 

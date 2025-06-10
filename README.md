@@ -7,16 +7,16 @@ This template is designed to help get developers up and running with OSx in a fe
 ## Features ✨
 
 - **Foundry**: Configured with the right dependencies and settings for Aragon OSx.
-- **Versatile contract starters**: [See Template Variants below](#template-variants)
+- **Versatile contract starters**: [See Template Variants below](#template-variants-)
 - **Deployment scripts and factories**: Starter scripts for simple plugin publishing, as well as for custom DAO deployments.
-- **Flexible testing environment**: A set of tools to run unit tests, fork tests, describe use cases and build entire local deployments with ease.
-- **Code verification helpers**: Verify on multiple block explorers given the same deployment
+- **Flexible testing environment**: A set of tools to run unit tests, fork tests, describe use cases and prepare entire deployments in one line.
+- **Multi explorer code verification**: Verify on multiple block explorers given the same deployment
 - **Streamlined action runner**: A self documented [makefile](#using-the-makefile) to manage the entire workflow
 - **Code snippets and examples**
 
 ## Prerequisites 📋
 - [Foundry](https://getfoundry.sh/)
-- Git
+- [Git](https://git-scm.com/)
 - [Make](https://www.gnu.org/software/make/)
 
 Optional:
@@ -26,14 +26,13 @@ Optional:
 
 ## Getting Started 🏁
 
-To get started, clone this repository and run the initial commands:
+To get started, clone this repository and initialize the repository:
 
 ```bash
 git clone https://github.com/aragon/osx-plugin-template-foundry my-plugin
 cd my-plugin && rm -Rf .git && git init .
 cp .env.example .env
 make init
-forge build
 ```
 
 Edit `.env` to match your desired network and settings.
@@ -86,7 +85,7 @@ Deployment targets:
 
 - make predeploy          Simulate a protocol deployment
 - make deploy             Deploy the protocol, verify the source code and write to ./artifacts
-- make resume             Retry the last deployment transactions, verify the code and write to ./artifacts
+- make resume             Retry pending deployment transactions, verify the code and write to ./artifacts
 
 Verification:
 
@@ -96,20 +95,6 @@ Verification:
 
 - make refund             Refund the remaining balance left on the deployment account
 ```
-
-### Initial set up
-
-Create your `.env` file:
-
-```sh
-cp .env.example .env
-```
-
-Next, set the values of `.env` according to your environment.
-
-Run `make init`:
-- It ensures that the dependencies are installed
-- It runs a first compilation of the project
 
 ## Template Variants 🌈
 
@@ -121,15 +106,15 @@ In order to accommodate a wide range of cases, this repo provides comprehensive 
 - [Cloneable plugin](./src/MyCloneablePlugin.sol)
 - [Static plugin](./src/MyStaticPlugin.sol)
 
-Update the `constructor()` and `prepareInstallation()` on the [plugin setup](./src/setup/MyPluginSetup.sol) to make it target the variant of your choice.
+Update the code within `constructor()` and `prepareInstallation()` on the [plugin setup](./src/setup/MyPluginSetup.sol) to make it use the variant of your choice.
 
 For upgradeable plugins, consider inheriting from `PluginUpgradeableSetup` instead of `PluginSetup`.
 
 ### Deployment flows
 
-- [Deploying a plugin repository](./script/DeploySimple.s.sol) (simple)
-- [Deploying a DAO with plugin(s) installed](./script/DeployDaoWithPlugins.s.sol)
-- [Deploying a DAO with plugin(s) via a Factory (trustless)](./script/DeployViaFactory.s.sol)
+- [Deploying a plugin repository](./script/DeploySimple.s.sol) (simple, trusted)
+- [Deploying a DAO with plugin(s) installed](./script/DeployDaoWithPlugins.s.sol) (trusted)
+- [Deploying a DAO with plugin(s) via a Factory](./script/DeployViaFactory.s.sol)  (trustless)
 
 Update `DEPLOYMENT_SCRIPT` in `Makefile` to make it use the deployment script of your choice.
 
@@ -162,7 +147,7 @@ Run `make test` or `forge test -vvv` to check the logic's accordance to the spec
 
 Optionally, tests with hierarchies can be described using yaml files like [MyPlugin.t.yaml](./test/MyPlugin.t.yaml), which will be transformed into solidity files by running `make sync-tests`, thanks to [bulloak](https://github.com/alexfertel/bulloak).
 
-Create a file with `.t.yaml` extension within the `test` folder and describe a hierarchy with a structure like this:
+Create a file with `.t.yaml` extension within the `test` folder and describe a hierarchy using the following structure:
 
 ```yaml
 # MyPlugin.t.yaml
@@ -175,7 +160,6 @@ MyPluginTest:
         then:
           - it: Should revert
   - given: The caller has permission
-    comment: The caller holds MANAGER_PERMISSION_ID
     and:
       - when: Calling setNumber()
         then:
@@ -184,6 +168,8 @@ MyPluginTest:
     then:
       - it: Should return the right value
 ```
+
+Nodes like `when` and `given` can be nested without limitations.
 
 Then use `make` to automatically sync the described branches into solidity test files.
 
@@ -198,7 +184,7 @@ Testing lifecycle:
 $ make sync-tests
 ```
 
-Each yaml file will generate (or sync) a solidity test file with functions ready to be implemented. It will also generate a human readable summary in [TESTS.md](./TESTS.md) file.
+Each yaml file will generate (or sync) a solidity test file with functions ready to be implemented. They also generate a human readable summary in [TESTS.md](./TESTS.md).
 
 ### Testing with a local OSx
 
@@ -219,7 +205,7 @@ Given that this repository already depends on OSx, you may want to replace the e
 +@aragon/osx/=lib/protocol-factory/lib/osx/packages/contracts/src/
 ```
 
-Then, use the protocol factory to deploy OSx and use them as you need.
+Then, use the protocol factory to deploy OSx and use its contracts as you need.
 
 ```solidity
 // Set the path according to your remappings.txt file
@@ -234,7 +220,7 @@ ProtocolFactory.Deployment memory deployment = factory.getDeployment();
 console.log("DaoFactory", deployment.daoFactory);
 ```
 
-You can even [customize your local OSx test environment](https://github.com/aragon/protocol-factory?tab=readme-ov-file#if-you-need-to-override-some-parameters) if needed.
+You can even [customize your local OSx deployment](https://github.com/aragon/protocol-factory?tab=readme-ov-file#if-you-need-to-override-some-parameters) if needed.
 
 ## Deployment 🚀
 
@@ -246,6 +232,8 @@ Check the available make targets to simulate and deploy the smart contracts:
 ```
 
 ### Deployment Checklist
+
+When running a production deployment ceremony, you can use these steps as a reference:
 
 - [ ] I have cloned the official repository on my computer and I have checked out the `main` branch
 - [ ] I am using the latest official docker engine, running a Debian Linux (stable) image
@@ -289,11 +277,11 @@ Check the available make targets to simulate and deploy the smart contracts:
 - [ ] The factory contract was deployed by the deployment address
 - [ ] All the project's smart contracts are correctly verified on the reference block explorer of the target network.
 - [ ] The output of the latest `logs/deployment-<network>-<date>.log` file corresponds to the console output
-- [ ] A file called `artifacts/addresses-<network>-<timestamp>.json` has been created, and the addresses match those logged to the screen
+- [ ] A file called `artifacts/deployment-<network>-<timestamp>.json` has been created, and the addresses match those logged to the screen
 - [ ] I have uploaded the following files to a shared location:
   - `logs/deployment-<network>.log` (the last one)
-  - `artifacts/addresses-<network>-<timestamp>.json`  (the last one)
-  - `broadcast/Deploy.s.sol/<chain-id>/run-<timestamp>.json` (the last one)
+  - `artifacts/deployment-<network>-<timestamp>.json`  (the last one)
+  - `broadcast/Deploy.s.sol/<chain-id>/run-<timestamp>.json` (the last one, or `run-latest.json`)
 - [ ] The rest of members confirm that the values are correct
 - [ ] I have transferred the remaining funds of the deployment wallet to the address that originally funded it
   - `make refund`

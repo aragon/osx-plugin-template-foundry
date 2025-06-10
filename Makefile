@@ -204,7 +204,7 @@ deploy: test ## Deploy the protocol, verify the source code and write to ./artif
 		$(VERBOSITY) 2>&1 | tee -a $(LOGS_FOLDER)/$(DEPLOYMENT_LOG_FILE)
 
 .PHONY: resume
-resume: test ## Retry the last deployment transactions, verify the code and write to ./artifacts
+resume: test ## Retry pending deployment transactions, verify the code and write to ./artifacts
 	@echo "Retrying the deployment"
 	@mkdir -p $(LOGS_FOLDER) $(ARTIFACTS_FOLDER)
 	forge script $(DEPLOYMENT_SCRIPT) \

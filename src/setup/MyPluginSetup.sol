@@ -17,7 +17,7 @@ import {MyUpgradeablePlugin} from "../MyUpgradeablePlugin.sol";
 /// @dev It can work with upgradeable, cloneable and static plugins
 /// @dev Release 1, Build 1
 contract MyPluginSetup is PluginSetup {
-    // TODO: Choose your plugin variant (if upgradeable or cloneabe are desired)
+    // NOTE: Choose your plugin variant (if upgradeable or cloneabe are desired)
     // constructor() PluginSetup(address(new MyCloneablePlugin())) {}
     constructor() PluginSetup(address(new MyUpgradeablePlugin())) {}
 
@@ -34,7 +34,7 @@ contract MyPluginSetup is PluginSetup {
             uint256 _initialNumber
         ) = decodeInstallationParams(_installationParams);
 
-        // TODO: Uncomment the code to deploy your desired plugin variant below
+        // NOTE: Uncomment the code to deploy your desired plugin variant below
 
         // 1) Upgradeable plugin variant
         plugin = ProxyLib.deployUUPSProxy(

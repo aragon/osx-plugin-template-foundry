@@ -9,20 +9,13 @@ import {DaoUnauthorized} from "@aragon/osx-commons-contracts/src/permission/auth
 import {MyPluginSetup} from "../src/setup/MyPluginSetup.sol";
 import {MyUpgradeablePlugin} from "../src/MyUpgradeablePlugin.sol";
 
-abstract contract MyPluginTestBase is TestBase {
-    DAO internal dao;
-    MyUpgradeablePlugin internal plugin;
-    MyPluginSetup internal setup;
+contract MyUpgradeablePluginInitializeTest is TestBase {
+    DAO dao;
+    MyUpgradeablePlugin plugin;
 
-    function setUp() public virtual {
+    function setUp() public {
         // Customize the Builder to feature more default values and overrides
         (dao, plugin) = new SimpleBuilder().withInitialNumber(123).build();
-    }
-}
-
-contract MyUpgradeablePluginInitializeTest is MyPluginTestBase {
-    function setUp() public override {
-        super.setUp();
     }
 
     function test_initialize() public view {
@@ -36,9 +29,13 @@ contract MyUpgradeablePluginInitializeTest is MyPluginTestBase {
     }
 }
 
-contract MyUpgradeablePluginStoreNumberTest is MyPluginTestBase {
-    function setUp() public override {
-        super.setUp();
+contract MyUpgradeablePluginStoreNumberTest is TestBase {
+    DAO dao;
+    MyUpgradeablePlugin plugin;
+
+    function setUp() public {
+        // Customize the Builder to feature more default values and overrides
+        (dao, plugin) = new SimpleBuilder().withInitialNumber(123).build();
     }
 
     function test_store_number() public {

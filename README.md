@@ -35,7 +35,7 @@ Edit `.env` to match your desired network and settings.
 ### Installing dependencies
 
 ```sh
-forge install <github-org/repo-name>  # replace accordingly
+forge install <github-org>/<repo-name>  # replace accordingly
 
 # Use the version you need
 cd lib/<repo-name>
@@ -104,23 +104,27 @@ Run `make init`:
 - It ensures that the dependencies are installed
 - It runs a first compilation of the project
 
-## Template Variants
+## Template Variants 🌈
 
-In order to accommodate a wide range of cases, this repo provides comprehensive examples for:
+In order to accommodate a wide range of cases, this repo provides comprehensive examples for the following variants:
 
 ### Plugin types
 
 - [UUPS upgradeable plugin](./src/MyUpgradeablePlugin.sol)
-- Cloneable plugin
-- Static plugin
+- [Cloneable plugin](./src/MyCloneablePlugin.sol)
+- [Static plugin](./src/MyStaticPlugin.sol)
+
+Update the `constructor()` and `prepareInstallation()` on the [plugin setup](./src/setup/MyPluginSetup.sol) to make it target the variant of your choice.
+
+For upgradeable plugins, consider inheriting from `PluginUpgradeableSetup` instead of `PluginSetup`.
 
 ### Deployment flows
 
 - [Deploying a plugin repository](./script/DeploySimple.s.sol) (simple)
 - [Deploying a DAO with plugin(s) installed](./script/DeployDaoWithPlugins.s.sol)
-- Deploying a DAO with plugin(s) via a Factory (trustless)
+- [Deploying a DAO with plugin(s) via a Factory (trustless)](./script/DeployViaFactory.s.sol)
 
-Edit `DEPLOYMENT_SCRIPT` in `Makefile` to point to the deployment script of your choice.
+Update `DEPLOYMENT_SCRIPT` in `Makefile` to make it use the deployment script of your choice.
 
 ### DAO builders (for testing)
 

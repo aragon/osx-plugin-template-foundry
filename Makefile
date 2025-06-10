@@ -10,6 +10,7 @@ SHELL:=/bin/bash
 # NOTE: Choose the appropriate deployment script
 DEPLOYMENT_SCRIPT := script/DeploySimple.s.sol:DeploySimpleScript
 # DEPLOYMENT_SCRIPT := script/DeployDaoWithPlugins.s.sol:DeployDaoWithPluginsScript
+# DEPLOYMENT_SCRIPT := script/DeployViaFactory.s.sol:DeployViaFactoryScript
 
 SOLC_VERSION := $(shell cat foundry.toml | grep solc | cut -d= -f2 | xargs echo || echo "0.8.28")
 SUPPORTED_VERIFIERS := etherscan blockscout sourcify routescan-mainnet routescan-testnet

@@ -14,9 +14,15 @@ contract SimpleBuilder is TestBase {
         address(new MyUpgradeablePlugin());
 
     // Parameters to override
-    address daoOwner = alice; // Used for testing purposes only
+    address daoOwner; // Used for testing purposes only
     address[] managers = [bob];
     uint256 initialNumber = 1;
+
+    constructor() {
+        // Set the caller as the initial daoOwner
+        // It can grant and revoke permissions freely for testing purposes
+        withDaoOwner(msg.sender);
+    }
 
     // Override methods
     function withDaoOwner(address _newOwner) public returns (SimpleBuilder) {

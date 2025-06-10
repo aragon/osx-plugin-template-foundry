@@ -24,30 +24,27 @@ import {MyUpgradeablePlugin} from "../MyUpgradeablePlugin.sol";
 contract DeploymentFactory {
     /// @notice The struct containing all the parameters to deploy the DAO and its plugin(s)
     struct DeploymentParams {
+        // DAO params
+        bytes metadataUri;
         // Plugin params
         address initialManager;
         uint256 initialNumber;
         // OSx contracts
-        address osxDaoFactory;
-        PluginSetupProcessor pluginSetupProcessor;
+        DAOFactory daoFactory;
         PluginRepoFactory pluginRepoFactory;
-        // Plugin setup(s)
-        MyPluginSetup myPluginSetup;
-        // ENS
-        string myPluginEnsDomain;
+        PluginSetupProcessor pluginSetupProcessor;
+        // Plugin management params
+        address pluginRepoMaintainer;
+        string myPluginEnsSubdomain;
     }
 
     struct Deployment {
+        // Deployed DAO
         DAO dao;
-        // Plugin(s)
-        MyUpgradeablePlugin myPlugin;
-        // MyCloneablePlugin myPlugin;
-        // MyStaticPlugin myPlugin;
-
-        // Helper(s)
-        // ...
-
-        // Plugin repo(s)
+        // Deployed Plugin(s)
+        address myPlugin;
+        // Deployed Helper(s)
+        // Deployed Plugin repo(s)
         PluginRepo myPluginRepo;
     }
 
@@ -65,7 +62,9 @@ contract DeploymentFactory {
 
     /// @notice Uses the immutable parameters defined when deploying the contract and performs a single deployment, whose artifacts become read-only afterwards.
     function deployOnce() external {
-        if (address(deployment.dao) != address(0)) revert AlreadyDeployed();
+        if (address(deployment.dao) != address(0)) {
+            revert AlreadyDeployed();
+        }
 
         IPluginSetup.PreparedSetupData memory pluginSetupData;
 
@@ -78,7 +77,7 @@ contract DeploymentFactory {
             deployment.myPlugin,
             deployment.myPluginRepo,
             pluginSetupData
-        ) = preparePlugin(dao);
+        ) = prepareMyPlugin(dao);
 
         // APPLY THE PLUGIN INSTALLATION(S)
         grantApplyInstallationPermissions(dao);
@@ -98,7 +97,7 @@ contract DeploymentFactory {
 
     function prepareDao() internal returns (DAO dao) {
         // Get the implementation address from the OSx DAO Factory
-        address daoBase = DAOFactory(params.osxDaoFactory).daoBase();
+        address daoBase = DAOFactory(params.daoFactory).daoBase();
 
         // Deploy the DAO with `daoOwner` as ROOT
         dao = DAO(
@@ -108,10 +107,10 @@ contract DeploymentFactory {
                     abi.encodeCall(
                         DAO.initialize,
                         (
-                            "", // Metadata URI
-                            address(this), // initialOwner
+                            params.metadataUri,
+                            address(this), // Initial owner
                             address(0x0), // Trusted forwarder
-                            "" // DAO URI
+                            "" // DAO URI (not used)
                         )
                     )
                 )
@@ -140,53 +139,62 @@ contract DeploymentFactory {
         dao.applySingleTargetPermissions(address(dao), items);
     }
 
-    function preparePlugin(
+    /// @notice Deploys a new plugin repo with a first version, then it prepares a new plugin instance with the given settings
+    function prepareMyPlugin(
         DAO dao
     )
         internal
         returns (
-            MyUpgradeablePlugin,
-            PluginRepo,
-            IPluginSetup.PreparedSetupData memory
+            address plugin,
+            PluginRepo pluginRepo,
+            IPluginSetup.PreparedSetupData memory preparedSetupData
         )
     {
+        // Publish the PluginSetup
+        MyPluginSetup myPluginSetup = new MyPluginSetup();
+
         // Publish repo
-        PluginRepo pluginRepo = PluginRepoFactory(params.pluginRepoFactory)
+        pluginRepo = PluginRepoFactory(params.pluginRepoFactory)
             .createPluginRepoWithFirstVersion(
-                params.myPluginEnsDomain,
-                address(params.myPluginSetup),
+                params.myPluginEnsSubdomain,
+                address(myPluginSetup),
                 address(dao),
-                " ",
-                " "
+                " ", // Release metadata (not used)
+                " " // Build metadata (not used)
             );
+
+        // If no maintainer is defined, set the DAO as the maintainer
+        if (params.pluginRepoMaintainer == address(0)) {
+            params.pluginRepoMaintainer = address(dao);
+        }
+
         dao.grant(
             address(pluginRepo),
-            address(dao),
+            params.pluginRepoMaintainer,
             pluginRepo.MAINTAINER_PERMISSION_ID()
         );
-
         // UPGRADE_REPO_PERMISSION_ID can be granted eventually
 
-        bytes memory paramsData = params.myPluginSetup.encodeInstallationParams(
+        // NOTE: Our new plugin instance parameters
+        bytes memory paramsData = myPluginSetup.encodeInstallationParams(
             params.initialManager,
             params.initialNumber
         );
 
+        // New plugin instance(s)
         PluginRepo.Tag memory versionTag = PluginRepo.Tag(1, 1);
-        (
-            address plugin,
-            IPluginSetup.PreparedSetupData memory preparedSetupData
-        ) = params.pluginSetupProcessor.prepareInstallation(
+        (plugin, preparedSetupData) = params
+            .pluginSetupProcessor
+            .prepareInstallation(
                 address(dao),
                 PluginSetupProcessor.PrepareInstallationParams(
                     PluginSetupRef(versionTag, pluginRepo),
                     paramsData
                 )
             );
-
-        return (MyUpgradeablePlugin(plugin), pluginRepo, preparedSetupData);
     }
 
+    /// @notice Gets a prepared plugin installation and it applies the requested permissions
     function applyPluginInstallation(
         DAO dao,
         address plugin,
@@ -204,6 +212,7 @@ contract DeploymentFactory {
         );
     }
 
+    /// @notice Allow this factory to apply installations
     function grantApplyInstallationPermissions(DAO dao) internal {
         // The PSP can manage permissions on the new DAO
         dao.grant(
@@ -220,6 +229,7 @@ contract DeploymentFactory {
         );
     }
 
+    /// @notice Undo the permission for this factory to apply installations
     function revokeApplyInstallationPermissions(DAO dao) internal {
         // Revoking the permission for the factory to call applyInstallation() on the PSP
         dao.revoke(
@@ -236,6 +246,7 @@ contract DeploymentFactory {
         );
     }
 
+    /// @notice Remove this factory as a DAO owner
     function revokeOwnerPermission(DAO dao) internal {
         dao.revoke(address(dao), address(this), dao.ROOT_PERMISSION_ID());
     }

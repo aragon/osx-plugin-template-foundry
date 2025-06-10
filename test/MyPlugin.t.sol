@@ -22,20 +22,13 @@ contract MyPluginTest is TestBase {
         _;
     }
 
-    function test_RevertWhen_CallingInitialize()
-        external
-        givenThePluginIsAlreadyInitialized
-    {
+    function test_RevertWhen_CallingInitialize() external givenThePluginIsAlreadyInitialized {
         // It Should revert
         vm.expectRevert("Initializable: contract is already initialized");
         plugin.initialize(dao, 69);
     }
 
-    function test_WhenCallingDaoAndNumber()
-        external
-        view
-        givenThePluginIsAlreadyInitialized
-    {
+    function test_WhenCallingDaoAndNumber() external view givenThePluginIsAlreadyInitialized {
         // It Should return the right values
         assertEq(address(plugin.dao()), address(dao));
         assertEq(plugin.number(), 123);
@@ -46,43 +39,25 @@ contract MyPluginTest is TestBase {
         managers[0] = alice;
         managers[1] = bob;
 
-        (dao, plugin) = new SimpleBuilder()
-            .withDaoOwner(alice)
-            .withManagers(managers)
-            .build();
+        (dao, plugin) = new SimpleBuilder().withDaoOwner(alice).withManagers(managers).build();
 
         _;
     }
 
-    function test_RevertWhen_CallingSetNumber()
-        external
-        givenTheCallerHasNoPermission
-    {
+    function test_RevertWhen_CallingSetNumber() external givenTheCallerHasNoPermission {
         // It Should revert
 
         // error DaoUnauthorized({dao: address(_dao),  where: _where,  who: _who,permissionId: _permissionId });
         vm.prank(carol);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                DaoUnauthorized.selector,
-                dao,
-                plugin,
-                carol,
-                keccak256("MANAGER_PERMISSION")
-            )
+            abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, carol, keccak256("MANAGER_PERMISSION"))
         );
         plugin.setNumber(0);
         assertEq(plugin.number(), 1);
 
         vm.prank(david);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                DaoUnauthorized.selector,
-                dao,
-                plugin,
-                david,
-                keccak256("MANAGER_PERMISSION")
-            )
+            abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, david, keccak256("MANAGER_PERMISSION"))
         );
         plugin.setNumber(50);
         assertEq(plugin.number(), 1);
@@ -103,10 +78,7 @@ contract MyPluginTest is TestBase {
         managers[0] = alice;
         managers[1] = bob;
 
-        (dao, plugin) = new SimpleBuilder()
-            .withInitialNumber(100)
-            .withManagers(managers)
-            .build();
+        (dao, plugin) = new SimpleBuilder().withInitialNumber(100).withManagers(managers).build();
 
         _;
     }

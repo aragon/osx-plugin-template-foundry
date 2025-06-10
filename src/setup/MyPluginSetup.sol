@@ -22,27 +22,17 @@ contract MyPluginSetup is PluginSetup {
     constructor() PluginSetup(address(new MyUpgradeablePlugin())) {}
 
     /// @inheritdoc IPluginSetup
-    function prepareInstallation(
-        address _dao,
-        bytes memory _installationParams
-    )
+    function prepareInstallation(address _dao, bytes memory _installationParams)
         external
         returns (address plugin, PreparedSetupData memory preparedSetupData)
     {
-        (
-            address _managerAddress,
-            uint256 _initialNumber
-        ) = decodeInstallationParams(_installationParams);
+        (address _managerAddress, uint256 _initialNumber) = decodeInstallationParams(_installationParams);
 
         // NOTE: Uncomment the code to deploy your desired plugin variant below
 
         // 1) Upgradeable plugin variant
         plugin = ProxyLib.deployUUPSProxy(
-            implementation(),
-            abi.encodeCall(
-                MyUpgradeablePlugin.initialize,
-                (IDAO(_dao), _initialNumber)
-            )
+            implementation(), abi.encodeCall(MyUpgradeablePlugin.initialize, (IDAO(_dao), _initialNumber))
         );
 
         // 2) Cloneable plugin variant
@@ -58,8 +48,7 @@ contract MyPluginSetup is PluginSetup {
         // plugin = address(new MyStaticPlugin(IDAO(_dao), _initialNumber));
 
         // Request permissions
-        PermissionLib.MultiTargetPermission[]
-            memory permissions = new PermissionLib.MultiTargetPermission[](2);
+        PermissionLib.MultiTargetPermission[] memory permissions = new PermissionLib.MultiTargetPermission[](2);
 
         // _managerAddress has MANAGER_PERMISSION_ID on the plugin
         permissions[0] = PermissionLib.MultiTargetPermission({
@@ -67,8 +56,7 @@ contract MyPluginSetup is PluginSetup {
             where: plugin,
             who: _managerAddress,
             condition: PermissionLib.NO_CONDITION,
-            permissionId: MyUpgradeablePlugin(implementation())
-                .MANAGER_PERMISSION_ID()
+            permissionId: MyUpgradeablePlugin(implementation()).MANAGER_PERMISSION_ID()
         });
 
         // The pugin has EXECUTE_PERMISSION_ID on the DAO
@@ -97,10 +85,7 @@ contract MyPluginSetup is PluginSetup {
     // }
 
     /// @inheritdoc IPluginSetup
-    function prepareUninstallation(
-        address _dao,
-        SetupPayload calldata _payload
-    )
+    function prepareUninstallation(address _dao, SetupPayload calldata _payload)
         external
         view
         returns (PermissionLib.MultiTargetPermission[] memory permissions)
@@ -134,36 +119,32 @@ contract MyPluginSetup is PluginSetup {
     /// @notice Serialized the given parameters into encoded bytes
     /// @param _managerAddress The address to grant MANAGER_PERMISSION_ID to
     /// @param _initialNumber The initial number stored when deploying the contract
-    function encodeInstallationParams(
-        address _managerAddress,
-        uint256 _initialNumber
-    ) external pure returns (bytes memory) {
+    function encodeInstallationParams(address _managerAddress, uint256 _initialNumber)
+        external
+        pure
+        returns (bytes memory)
+    {
         return abi.encode(_managerAddress, _initialNumber);
     }
 
     /// @notice Decodes the given bytes into the individual parameters
     /// @param _data The bytes array containing the encoded parameters
-    function decodeInstallationParams(
-        bytes memory _data
-    ) public pure returns (address _managerAddress, uint256 _initialNumber) {
-        (_managerAddress, _initialNumber) = abi.decode(
-            _data,
-            (address, uint256)
-        );
+    function decodeInstallationParams(bytes memory _data)
+        public
+        pure
+        returns (address _managerAddress, uint256 _initialNumber)
+    {
+        (_managerAddress, _initialNumber) = abi.decode(_data, (address, uint256));
     }
 
     /// @notice Serializes the given parameters into encoded bytes
-    function encodeUninstallationParams(
-        address _managerAddress
-    ) external pure returns (bytes memory) {
+    function encodeUninstallationParams(address _managerAddress) external pure returns (bytes memory) {
         return abi.encode(_managerAddress);
     }
 
     /// @notice Decodes the given bytes into the individual parameters
     /// @param _data The bytes array containing the encoded parameters
-    function decodeUninstallationParams(
-        bytes memory _data
-    ) public pure returns (address _managerAddress) {
+    function decodeUninstallationParams(bytes memory _data) public pure returns (address _managerAddress) {
         _managerAddress = abi.decode(_data, (address));
     }
 }

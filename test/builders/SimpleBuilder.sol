@@ -10,8 +10,7 @@ import {ProxyLib} from "@aragon/osx-commons-contracts/src/utils/deployment/Proxy
 
 contract SimpleBuilder is TestBase {
     address immutable DAO_BASE = address(new DAO());
-    address immutable UPGRADEABLE_PLUGIN_BASE =
-        address(new MyUpgradeablePlugin());
+    address immutable UPGRADEABLE_PLUGIN_BASE = address(new MyUpgradeablePlugin());
 
     // Parameters to override
     address daoOwner; // Used for testing purposes only
@@ -30,9 +29,7 @@ contract SimpleBuilder is TestBase {
         return this;
     }
 
-    function withManagers(
-        address[] memory _newManagers
-    ) public returns (SimpleBuilder) {
+    function withManagers(address[] memory _newManagers) public returns (SimpleBuilder) {
         for (uint256 i = 0; i < _newManagers.length; i++) {
             managers.push(_newManagers[i]);
         }
@@ -51,11 +48,7 @@ contract SimpleBuilder is TestBase {
         dao = DAO(
             payable(
                 ProxyLib.deployUUPSProxy(
-                    address(DAO_BASE),
-                    abi.encodeCall(
-                        DAO.initialize,
-                        ("", daoOwner, address(0x0), "")
-                    )
+                    address(DAO_BASE), abi.encodeCall(DAO.initialize, ("", daoOwner, address(0x0), ""))
                 )
             )
         );
@@ -63,11 +56,7 @@ contract SimpleBuilder is TestBase {
         // Plugin
         plugin = MyUpgradeablePlugin(
             ProxyLib.deployUUPSProxy(
-                address(UPGRADEABLE_PLUGIN_BASE),
-                abi.encodeCall(
-                    MyUpgradeablePlugin.initialize,
-                    (dao, initialNumber)
-                )
+                address(UPGRADEABLE_PLUGIN_BASE), abi.encodeCall(MyUpgradeablePlugin.initialize, (dao, initialNumber))
             )
         );
 
@@ -76,19 +65,11 @@ contract SimpleBuilder is TestBase {
         // Grant plugin permissions
         if (managers.length > 0) {
             for (uint256 i = 0; i < managers.length; i++) {
-                dao.grant(
-                    address(plugin),
-                    managers[i],
-                    plugin.MANAGER_PERMISSION_ID()
-                );
+                dao.grant(address(plugin), managers[i], plugin.MANAGER_PERMISSION_ID());
             }
         } else {
             // Set the daoOwner as the plugin manager if no managers are defined
-            dao.grant(
-                address(plugin),
-                daoOwner,
-                plugin.MANAGER_PERMISSION_ID()
-            );
+            dao.grant(address(plugin), daoOwner, plugin.MANAGER_PERMISSION_ID());
         }
 
         vm.stopPrank();

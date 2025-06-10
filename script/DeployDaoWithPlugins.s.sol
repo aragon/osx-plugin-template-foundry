@@ -12,19 +12,19 @@ import {hashHelpers, PluginSetupRef} from "@aragon/osx/framework/plugin/setup/Pl
 import {MyPluginSetup} from "../src/setup/MyPluginSetup.sol";
 
 /**
-This script performs the following tasks:
-- Deploys a new PluginRepo for each available plugin
-- Publishes a new version of each plugin (release 1, build 1)
-- Deploys the DAO
-- Installs the available plugins on it
-- If no maintainer was defined for the plugin repo, it sets the new DAO as the maintaner
-
-NOTE:
-
-This script is not suitable for sensitive deployments with high value at stake.
-- The deployer may be the temporary maintainer of the plugin repo.
-- Use the factory variant instead.
-*/
+ * This script performs the following tasks:
+ * - Deploys a new PluginRepo for each available plugin
+ * - Publishes a new version of each plugin (release 1, build 1)
+ * - Deploys the DAO
+ * - Installs the available plugins on it
+ * - If no maintainer was defined for the plugin repo, it sets the new DAO as the maintaner
+ *
+ * NOTE:
+ *
+ * This script is not suitable for sensitive deployments with high value at stake.
+ * - The deployer may be the temporary maintainer of the plugin repo.
+ * - Use the factory variant instead.
+ */
 contract DeployDaoWithPluginsScript is Script {
     using stdJson for string;
 
@@ -61,9 +61,7 @@ contract DeployDaoWithPluginsScript is Script {
         // https://github.com/aragon/osx/blob/main/packages/artifacts/src/addresses.json
 
         // Prepare the OSx factories for the current network
-        pluginRepoFactory = PluginRepoFactory(
-            vm.envAddress("PLUGIN_REPO_FACTORY_ADDRESS")
-        );
+        pluginRepoFactory = PluginRepoFactory(vm.envAddress("PLUGIN_REPO_FACTORY_ADDRESS"));
         vm.label(address(pluginRepoFactory), "PluginRepoFactory");
 
         daoFactory = DAOFactory(vm.envAddress("DAO_FACTORY_ADDRESS"));
@@ -75,17 +73,11 @@ contract DeployDaoWithPluginsScript is Script {
 
         // Using a random subdomain if empty
         if (bytes(pluginEnsSubdomain).length == 0) {
-            pluginEnsSubdomain = string.concat(
-                "my-test-plugin-",
-                vm.toString(block.timestamp)
-            );
+            pluginEnsSubdomain = string.concat("my-test-plugin-", vm.toString(block.timestamp));
         }
 
         // Set the DAO as the maintainer (if empty)
-        pluginRepoMaintainer = vm.envOr(
-            "PLUGIN_REPO_MAINTAINER_ADDRESS",
-            address(0)
-        );
+        pluginRepoMaintainer = vm.envOr("PLUGIN_REPO_MAINTAINER_ADDRESS", address(0));
         vm.label(pluginRepoMaintainer, "Maintainer");
     }
 
@@ -124,57 +116,37 @@ contract DeployDaoWithPluginsScript is Script {
         // The new plugin repository
         // Publish the plugin in a new repo as release 1, build 1
         myPluginRepo = pluginRepoFactory.createPluginRepoWithFirstVersion(
-            pluginEnsSubdomain,
-            address(myPluginSetup),
-            _initialMaintainer,
-            " ",
-            " "
+            pluginEnsSubdomain, address(myPluginSetup), _initialMaintainer, " ", " "
         );
     }
 
-    function getNewDAOSettings()
-        public
-        view
-        returns (DAOFactory.DAOSettings memory)
-    {
+    function getNewDAOSettings() public view returns (DAOFactory.DAOSettings memory) {
         return DAOFactory.DAOSettings(address(0), "", daoEnsSubdomain, "");
     }
 
-    function getNewPluginSettings()
-        public
-        view
-        returns (DAOFactory.PluginSettings[] memory installPluginSettings)
-    {
+    function getNewPluginSettings() public view returns (DAOFactory.PluginSettings[] memory installPluginSettings) {
         // NOTE: Your plugin settings come here
         // Hardcoded for simplicity
         uint256 initialNumber = 50;
-        bytes memory pluginSettingsData = myPluginSetup
-            .encodeInstallationParams(address(dao), initialNumber);
+        bytes memory pluginSettingsData = myPluginSetup.encodeInstallationParams(address(dao), initialNumber);
 
         // Install from release 1, build 1
         PluginRepo.Tag memory tag = PluginRepo.Tag(1, 1);
 
         // MyUpgradeablePlugin params
         installPluginSettings = new DAOFactory.PluginSettings[](1);
-        installPluginSettings[0] = DAOFactory.PluginSettings(
-            PluginSetupRef(tag, myPluginRepo),
-            pluginSettingsData
-        );
+        installPluginSettings[0] = DAOFactory.PluginSettings(PluginSetupRef(tag, myPluginRepo), pluginSettingsData);
     }
 
     function deployDaoWithPlugins() public {
         // Prepare the DAO and plugin install settings
         DAOFactory.DAOSettings memory daoSettings = getNewDAOSettings();
 
-        DAOFactory.PluginSettings[]
-            memory installPluginSettings = getNewPluginSettings();
+        DAOFactory.PluginSettings[] memory installPluginSettings = getNewPluginSettings();
 
         // Create the DAO with the requested plugins installed
         DAOFactory.InstalledPlugin[] memory _installedPlugins;
-        (dao, _installedPlugins) = daoFactory.createDao(
-            daoSettings,
-            installPluginSettings
-        );
+        (dao, _installedPlugins) = daoFactory.createDao(daoSettings, installPluginSettings);
 
         for (uint256 i = 0; i < _installedPlugins.length; i++) {
             installedPlugins.push(_installedPlugins[i].plugin);
@@ -183,18 +155,10 @@ contract DeployDaoWithPluginsScript is Script {
 
     function transferRepoOwnership() public {
         // Set the DAO as a maintainer
-        myPluginRepo.grant(
-            address(myPluginRepo),
-            address(dao),
-            myPluginRepo.MAINTAINER_PERMISSION_ID()
-        );
+        myPluginRepo.grant(address(myPluginRepo), address(dao), myPluginRepo.MAINTAINER_PERMISSION_ID());
 
         // Remove the deployer wallet as a maintainer
-        myPluginRepo.revoke(
-            address(myPluginRepo),
-            deployer,
-            myPluginRepo.MAINTAINER_PERMISSION_ID()
-        );
+        myPluginRepo.revoke(address(myPluginRepo), deployer, myPluginRepo.MAINTAINER_PERMISSION_ID());
 
         pluginRepoMaintainer = address(dao);
     }
@@ -203,23 +167,14 @@ contract DeployDaoWithPluginsScript is Script {
         console2.log("DAO:");
         console2.log("- Address:    ", address(dao));
         if (bytes(daoEnsSubdomain).length > 0) {
-            console2.log(
-                "- ENS:        ",
-                string.concat(daoEnsSubdomain, ".dao.eth")
-            );
+            console2.log("- ENS:        ", string.concat(daoEnsSubdomain, ".dao.eth"));
         }
         console2.log("");
         console2.log("MyUpgradeablePlugin:");
-        console2.log(
-            "- Installed plugin:          ",
-            address(installedPlugins[0])
-        );
+        console2.log("- Installed plugin:          ", address(installedPlugins[0]));
         console2.log("- Plugin repo:               ", address(myPluginRepo));
         console2.log("- Plugin repo maintainer:    ", pluginRepoMaintainer);
-        console2.log(
-            "- ENS:                       ",
-            string.concat(pluginEnsSubdomain, ".plugin.dao.eth")
-        );
+        console2.log("- ENS:                       ", string.concat(pluginEnsSubdomain, ".plugin.dao.eth"));
         console2.log("");
     }
 
@@ -228,28 +183,17 @@ contract DeployDaoWithPluginsScript is Script {
         artifacts.serialize("dao", address(dao));
 
         if (bytes(daoEnsSubdomain).length > 0) {
-            artifacts.serialize(
-                "daoEnsDomain",
-                string.concat(daoEnsSubdomain, ".dao.eth")
-            );
+            artifacts.serialize("daoEnsDomain", string.concat(daoEnsSubdomain, ".dao.eth"));
         }
 
         artifacts.serialize("plugin", installedPlugins[0]);
         artifacts.serialize("pluginRepo", address(myPluginRepo));
         artifacts.serialize("pluginRepoMaintainer", pluginRepoMaintainer);
-        artifacts = artifacts.serialize(
-            "pluginEnsDomain",
-            string.concat(pluginEnsSubdomain, ".plugin.dao.eth")
-        );
+        artifacts = artifacts.serialize("pluginEnsDomain", string.concat(pluginEnsSubdomain, ".plugin.dao.eth"));
 
         string memory networkName = vm.envString("NETWORK_NAME");
         string memory filePath = string.concat(
-            vm.projectRoot(),
-            "/artifacts/deployment-",
-            networkName,
-            "-",
-            vm.toString(block.timestamp),
-            ".json"
+            vm.projectRoot(), "/artifacts/deployment-", networkName, "-", vm.toString(block.timestamp), ".json"
         );
         artifacts.write(filePath);
 

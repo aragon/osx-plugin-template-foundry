@@ -13,8 +13,7 @@ import {PluginSetupRef} from "@aragon/osx/framework/plugin/setup/PluginSetupProc
 import {TestBase} from "./TestBase.sol";
 
 contract ForkTestBase is TestBase {
-    DAOFactory internal immutable daoFactory =
-        DAOFactory(vm.envOr("DAO_FACTORY_ADDRESS", address(0)));
+    DAOFactory internal immutable daoFactory = DAOFactory(vm.envOr("DAO_FACTORY_ADDRESS", address(0)));
     PluginRepoFactory internal immutable pluginRepoFactory =
         PluginRepoFactory(vm.envOr("PLUGIN_REPO_FACTORY_ADDRESS", address(0)));
 
@@ -32,12 +31,8 @@ contract ForkTestBase is TestBase {
     /// @notice Fetches the latest tag from the PluginRepo
     /// @param repo The PluginRepo to fetch the latest tag from
     /// @return The latest tag from the PluginRepo
-    function getLatestTag(
-        PluginRepo repo
-    ) internal view returns (PluginRepo.Tag memory) {
-        PluginRepo.Version memory v = repo.getLatestVersion(
-            repo.latestRelease()
-        );
+    function getLatestTag(PluginRepo repo) internal view returns (PluginRepo.Tag memory) {
+        PluginRepo.Version memory v = repo.getLatestVersion(repo.latestRelease());
         return v.tag;
     }
 }

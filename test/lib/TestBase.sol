@@ -27,9 +27,7 @@ contract TestBase is Test {
     /// @param name The name to get the address and private key for.
     /// @return addr The address associated with the name.
     /// @return pk The private key associated with the name.
-    function makeWallet(
-        string memory name
-    ) internal returns (address addr, uint256 pk) {
+    function makeWallet(string memory name) internal returns (address addr, uint256 pk) {
         pk = uint256(keccak256(abi.encodePacked(name)));
         addr = vm.addr(pk);
         vm.label(addr, name);

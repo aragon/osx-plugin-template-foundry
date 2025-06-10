@@ -10,8 +10,7 @@ import {Plugin} from "@aragon/osx-commons-contracts/src/plugin/Plugin.sol";
 /// @dev In order to call setNumber() the caller needs to hold the MANAGER_PERMISSION
 /// @dev In order for resetDaoMetadata() to work, the plugin needs to hold EXECUTE_PERMISSION_ID on the DAO
 contract MyStaticPlugin is Plugin {
-    bytes32 public constant MANAGER_PERMISSION_ID =
-        keccak256("MANAGER_PERMISSION");
+    bytes32 public constant MANAGER_PERMISSION_ID = keccak256("MANAGER_PERMISSION");
 
     uint256 public number;
 

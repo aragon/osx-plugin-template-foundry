@@ -73,21 +73,12 @@ contract DeploymentFactory {
         deployment.dao = dao;
 
         // DEPLOY THE PLUGIN(S)
-        (
-            deployment.myPlugin,
-            deployment.myPluginRepo,
-            pluginSetupData
-        ) = prepareMyPlugin(dao);
+        (deployment.myPlugin, deployment.myPluginRepo, pluginSetupData) = prepareMyPlugin(dao);
 
         // APPLY THE PLUGIN INSTALLATION(S)
         grantApplyInstallationPermissions(dao);
 
-        applyPluginInstallation(
-            dao,
-            address(deployment.myPlugin),
-            deployment.myPluginRepo,
-            pluginSetupData
-        );
+        applyPluginInstallation(dao, address(deployment.myPlugin), deployment.myPluginRepo, pluginSetupData);
 
         revokeApplyInstallationPermissions(dao);
 
@@ -118,80 +109,53 @@ contract DeploymentFactory {
         );
 
         // Grant the DAO the necessary permissions on itself
-        PermissionLib.SingleTargetPermission[]
-            memory items = new PermissionLib.SingleTargetPermission[](3);
-        items[0] = PermissionLib.SingleTargetPermission(
-            PermissionLib.Operation.Grant,
-            address(dao),
-            dao.ROOT_PERMISSION_ID()
-        );
+        PermissionLib.SingleTargetPermission[] memory items = new PermissionLib.SingleTargetPermission[](3);
+        items[0] =
+            PermissionLib.SingleTargetPermission(PermissionLib.Operation.Grant, address(dao), dao.ROOT_PERMISSION_ID());
         items[1] = PermissionLib.SingleTargetPermission(
-            PermissionLib.Operation.Grant,
-            address(dao),
-            dao.UPGRADE_DAO_PERMISSION_ID()
+            PermissionLib.Operation.Grant, address(dao), dao.UPGRADE_DAO_PERMISSION_ID()
         );
         items[2] = PermissionLib.SingleTargetPermission(
-            PermissionLib.Operation.Grant,
-            address(dao),
-            dao.REGISTER_STANDARD_CALLBACK_PERMISSION_ID()
+            PermissionLib.Operation.Grant, address(dao), dao.REGISTER_STANDARD_CALLBACK_PERMISSION_ID()
         );
 
         dao.applySingleTargetPermissions(address(dao), items);
     }
 
     /// @notice Deploys a new plugin repo with a first version, then it prepares a new plugin instance with the given settings
-    function prepareMyPlugin(
-        DAO dao
-    )
+    function prepareMyPlugin(DAO dao)
         internal
-        returns (
-            address plugin,
-            PluginRepo pluginRepo,
-            IPluginSetup.PreparedSetupData memory preparedSetupData
-        )
+        returns (address plugin, PluginRepo pluginRepo, IPluginSetup.PreparedSetupData memory preparedSetupData)
     {
         // Publish the PluginSetup
         MyPluginSetup myPluginSetup = new MyPluginSetup();
 
         // Publish repo
-        pluginRepo = PluginRepoFactory(params.pluginRepoFactory)
-            .createPluginRepoWithFirstVersion(
-                params.myPluginEnsSubdomain,
-                address(myPluginSetup),
-                address(dao),
-                " ", // Release metadata (not used)
-                " " // Build metadata (not used)
-            );
+        pluginRepo = PluginRepoFactory(params.pluginRepoFactory).createPluginRepoWithFirstVersion(
+            params.myPluginEnsSubdomain,
+            address(myPluginSetup),
+            address(dao),
+            " ", // Release metadata (not used)
+            " " // Build metadata (not used)
+        );
 
         // If no maintainer is defined, set the DAO as the maintainer
         if (params.pluginRepoMaintainer == address(0)) {
             params.pluginRepoMaintainer = address(dao);
         }
 
-        dao.grant(
-            address(pluginRepo),
-            params.pluginRepoMaintainer,
-            pluginRepo.MAINTAINER_PERMISSION_ID()
-        );
+        dao.grant(address(pluginRepo), params.pluginRepoMaintainer, pluginRepo.MAINTAINER_PERMISSION_ID());
         // UPGRADE_REPO_PERMISSION_ID can be granted eventually
 
         // NOTE: Our new plugin instance parameters
-        bytes memory paramsData = myPluginSetup.encodeInstallationParams(
-            params.initialManager,
-            params.initialNumber
-        );
+        bytes memory paramsData = myPluginSetup.encodeInstallationParams(params.initialManager, params.initialNumber);
 
         // New plugin instance(s)
         PluginRepo.Tag memory versionTag = PluginRepo.Tag(1, 1);
-        (plugin, preparedSetupData) = params
-            .pluginSetupProcessor
-            .prepareInstallation(
-                address(dao),
-                PluginSetupProcessor.PrepareInstallationParams(
-                    PluginSetupRef(versionTag, pluginRepo),
-                    paramsData
-                )
-            );
+        (plugin, preparedSetupData) = params.pluginSetupProcessor.prepareInstallation(
+            address(dao),
+            PluginSetupProcessor.PrepareInstallationParams(PluginSetupRef(versionTag, pluginRepo), paramsData)
+        );
     }
 
     /// @notice Gets a prepared plugin installation and it applies the requested permissions
@@ -215,11 +179,7 @@ contract DeploymentFactory {
     /// @notice Allow this factory to apply installations
     function grantApplyInstallationPermissions(DAO dao) internal {
         // The PSP can manage permissions on the new DAO
-        dao.grant(
-            address(dao),
-            address(params.pluginSetupProcessor),
-            dao.ROOT_PERMISSION_ID()
-        );
+        dao.grant(address(dao), address(params.pluginSetupProcessor), dao.ROOT_PERMISSION_ID());
 
         // This factory can call applyInstallation() on the PSP
         dao.grant(
@@ -239,11 +199,7 @@ contract DeploymentFactory {
         );
 
         // Revoke the PSP permission to manage permissions on the new DAO
-        dao.revoke(
-            address(dao),
-            address(params.pluginSetupProcessor),
-            dao.ROOT_PERMISSION_ID()
-        );
+        dao.revoke(address(dao), address(params.pluginSetupProcessor), dao.ROOT_PERMISSION_ID());
     }
 
     /// @notice Remove this factory as a DAO owner

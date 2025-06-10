@@ -10,18 +10,14 @@ import {PluginUUPSUpgradeable} from "@aragon/osx/framework/plugin/setup/PluginSe
 /// @dev In order to call setNumber() the caller needs to hold the MANAGER_PERMISSION
 /// @dev In order for resetDaoMetadata() to work, the plugin needs to hold EXECUTE_PERMISSION_ID on the DAO
 contract MyUpgradeablePlugin is PluginUUPSUpgradeable {
-    bytes32 public constant MANAGER_PERMISSION_ID =
-        keccak256("MANAGER_PERMISSION");
+    bytes32 public constant MANAGER_PERMISSION_ID = keccak256("MANAGER_PERMISSION");
 
     /// @dev Added in build 1
     uint256 public number;
 
     /// @notice Initializes the plugin when build 1 is installed.
     /// @param _initialNumber The number to be stored.
-    function initialize(
-        IDAO _dao,
-        uint256 _initialNumber
-    ) external initializer {
+    function initialize(IDAO _dao, uint256 _initialNumber) external initializer {
         __PluginUUPSUpgradeable_init(_dao);
 
         number = _initialNumber;

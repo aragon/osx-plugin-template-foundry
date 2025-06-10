@@ -27,17 +27,12 @@ contract MyPluginForkTest is ForkTestBase {
 
     function test_endToEndFlow1() public {
         // Check the Repo
-        PluginRepo.Version memory version = repo.getLatestVersion(
-            repo.latestRelease()
-        );
+        PluginRepo.Version memory version = repo.getLatestVersion(repo.latestRelease());
         assertEq(version.pluginSetup, address(setup));
         assertEq(version.buildMetadata, NON_EMPTY_BYTES);
 
         // Check the DAO
-        assertEq(
-            keccak256(bytes(dao.daoURI())),
-            keccak256(bytes("http://host/"))
-        );
+        assertEq(keccak256(bytes(dao.daoURI())), keccak256(bytes("http://host/")));
 
         // Check the plugin initialization
         assertEq(plugin.number(), 1);
@@ -49,13 +44,7 @@ contract MyPluginForkTest is ForkTestBase {
 
         // Check that Carol cannot set number
         vm.expectRevert(
-            abi.encodeWithSelector(
-                DaoUnauthorized.selector,
-                dao,
-                plugin,
-                carol,
-                plugin.MANAGER_PERMISSION_ID()
-            )
+            abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, carol, plugin.MANAGER_PERMISSION_ID())
         );
         vm.prank(carol);
         plugin.setNumber(100);
@@ -64,23 +53,15 @@ contract MyPluginForkTest is ForkTestBase {
     }
 
     function test_endToEndFlow2() public {
-        (dao, repo, setup, plugin) = new ForkBuilder()
-            .withManager(david)
-            .withInitialNumber(200)
-            .build();
+        (dao, repo, setup, plugin) = new ForkBuilder().withManager(david).withInitialNumber(200).build();
 
         // Check the Repo
-        PluginRepo.Version memory version = repo.getLatestVersion(
-            repo.latestRelease()
-        );
+        PluginRepo.Version memory version = repo.getLatestVersion(repo.latestRelease());
         assertEq(version.pluginSetup, address(setup));
         assertEq(version.buildMetadata, NON_EMPTY_BYTES);
 
         // Check the DAO
-        assertEq(
-            keccak256(bytes(dao.daoURI())),
-            keccak256(bytes("http://host/"))
-        );
+        assertEq(keccak256(bytes(dao.daoURI())), keccak256(bytes("http://host/")));
 
         // Check the plugin initialization
         assertEq(plugin.number(), 200);
@@ -92,13 +73,7 @@ contract MyPluginForkTest is ForkTestBase {
 
         // Check that Carol cannot store a number
         vm.expectRevert(
-            abi.encodeWithSelector(
-                DaoUnauthorized.selector,
-                dao,
-                plugin,
-                carol,
-                plugin.MANAGER_PERMISSION_ID()
-            )
+            abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, carol, plugin.MANAGER_PERMISSION_ID())
         );
         vm.prank(carol);
         plugin.setNumber(50);

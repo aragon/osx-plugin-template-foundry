@@ -34,11 +34,11 @@ git clone --recurse-submodules https://github.com/aragon/osx-plugin-template-fou
 cd my-plugin
 
 # Detach from the template repo
-git remote rm origin
 git branch -M old-main
 git checkout --orphan main
 git add -A
-git commit -m "Initial commit"
+git commit -m "Initial commit from osx-plugin-template-foundry"
+git remote rm origin
 git branch -D old-main
 # git remote add origin <git-url>
 # git push -u origin main

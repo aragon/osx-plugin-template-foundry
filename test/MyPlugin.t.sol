@@ -6,7 +6,6 @@ import {TestBase} from "./lib/TestBase.sol";
 import {SimpleBuilder} from "./builders/SimpleBuilder.sol";
 import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {DaoUnauthorized} from "@aragon/osx-commons-contracts/src/permission/auth/auth.sol";
-import {MyPluginSetup} from "../src/setup/MyPluginSetup.sol";
 import {MyUpgradeablePlugin} from "../src/MyUpgradeablePlugin.sol";
 
 contract MyPluginTest is TestBase {

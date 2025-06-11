@@ -29,8 +29,21 @@ Optional:
 To get started, clone this repository and initialize the repository:
 
 ```bash
-git clone https://github.com/aragon/osx-plugin-template-foundry my-plugin
-cd my-plugin && rm -Rf .git && git init .
+# Clone the repo
+git clone --recurse-submodules https://github.com/aragon/osx-plugin-template-foundry my-plugin
+cd my-plugin
+
+# Detach from the template repo
+git remote rm origin
+git branch -M old-main
+git checkout --orphan main
+git add -A
+git commit -m "Initial commit"
+git branch -D old-main
+# git remote add origin <git-url>
+# git push -u origin main
+
+# Initialize the repo
 cp .env.example .env
 make init
 ```
@@ -56,6 +69,12 @@ Add the new package to `remappings.txt`:
 
 ```txt
 @organiation/repo-name/=lib/repo-name
+```
+
+Verify the status:
+
+```sh
+git submodule status
 ```
 
 ### Using the Makefile

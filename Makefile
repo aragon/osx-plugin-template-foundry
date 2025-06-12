@@ -2,6 +2,7 @@
 
 # Import settings and constants
 include .env
+include llm.mk
 
 SHELL:=/bin/bash
 
@@ -144,6 +145,24 @@ check-tests: $(TEST_TREE_FILES) ## Checks if the solidity test files are out of 
 	bulloak check $^
 
 test-tree: $(TEST_TREE_MARKDOWN) ## Generates a markdown file with the test definitions
+
+
+test-llm-prompt: export PROMPT=$(TEST_TREE_GENERATION_PROMPT)
+
+.PHONY: test-llm-prompt
+test-llm-prompt: ## Generates a prompt to generate the test tree for a given file
+	@if [ -z "$(file)" ] ; then \
+		echo "Invoke like:" ; \
+		echo "  $$ make $(@) file=./path/to/file" ; \
+		echo ; \
+		exit 1 ; \
+	fi
+	@stat $(file) > /dev/null
+	@/bin/bash -c 'printf "%s\n" "$$PROMPT"'
+	@echo
+	@echo "\`\`\`"
+	@cat $(file)
+	@echo "\`\`\`"
 
 # Generate single a markdown file with the test trees
 $(TEST_TREE_MARKDOWN): $(TEST_TREE_FILES)

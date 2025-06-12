@@ -99,6 +99,7 @@ Testing lifecycle:
 - make sync-tests         Scaffold or sync test definitions into solidity tests
 - make check-tests        Checks if the solidity test files are out of sync
 - make test-tree          Generates a markdown file with the test definitions
+- make test-llm-prompt    Generates a prompt to generate the test tree for a given file
 
 Deployment targets:
 
@@ -196,14 +197,31 @@ Then use `make sync-tests` to automatically sync the described branches into sol
 $ make
 Testing lifecycle:
 # ...
-- make sync-tests       Scaffold or sync tree files into solidity tests
-- make check-tests      Checks if solidity files are out of sync
-- make test-tree        Generates a markdown file with the test definitions
+
+- make sync-tests         Scaffold or sync test definitions into solidity tests
+- make check-tests        Checks if the solidity test files are out of sync
+- make test-tree          Generates a markdown file with the test definitions
 
 $ make sync-tests
 ```
 
 Each yaml file generates (or syncs) a solidity test file with functions ready to be implemented. They also generate a human readable summary in [TESTS.md](./TESTS.md).
+
+### Using LLM's to describe the expected tests
+
+```sh
+$ make
+Testing lifecycle:
+# ...
+
+- make test-llm-prompt    Generates a prompt to generate the test tree for a given file
+
+$ make test-llm-prompt file=./src/MyUpgradeablePlugin.sol
+```
+
+This command will generate a prompt that you can copy to an LLM so that it generates a yaml test tree definition for you.
+
+You can copy the resulting yaml output into a file like `test/MyUpgradeablePlugin.t.yaml` and run `make sync-tests` to get a test scaffold with the unimplemented tests.
 
 ### Testing with a local OSx
 

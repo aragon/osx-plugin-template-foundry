@@ -28,7 +28,7 @@ CHAIN_ID:=$(strip $(subst ',, $(subst ",,$(CHAIN_ID))))
 VERIFIER:=$(strip $(subst ',, $(subst ",,$(VERIFIER))))
 
 TEST_COVERAGE_SRC_FILES := $(wildcard test/*.sol test/**/*.sol src/*.sol src/**/*.sol)
-TEST_SOURCE_FILES := $(wildcard test/*.t.yaml test/integration/*.t.yaml)
+TEST_SOURCE_FILES := $(wildcard test/*.t.yaml test/fork-tests/*.t.yaml)
 TEST_TREE_FILES := $(TEST_SOURCE_FILES:.t.yaml=.tree)
 DEPLOYMENT_ADDRESS := $(shell cast wallet address --private-key $(DEPLOYMENT_PRIVATE_KEY) 2>/dev/null || echo "NOTE: DEPLOYMENT_PRIVATE_KEY is not properly set on .env" > /dev/stderr)
 
@@ -110,11 +110,11 @@ test: export ETHERSCAN_API_KEY=
 
 .PHONY: test
 test: ## Run unit tests, locally
-	forge test $(VERBOSITY) --no-match-path ./test/fork-tests/*
+	forge test $(VERBOSITY) --no-match-path ./test/fork-tests/*.sol
 
 .PHONY: test-fork
 test-fork: ## Run fork tests, using RPC_URL
-	forge test $(VERBOSITY) --match-path ./test/fork-tests/*
+	forge test $(VERBOSITY) --match-path ./test/fork-tests/*.sol
 
 test-coverage: report/index.html ## Generate an HTML coverage report under ./report
 	@which open > /dev/null && open report/index.html || true

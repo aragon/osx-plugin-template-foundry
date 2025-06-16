@@ -146,24 +146,6 @@ check-tests: $(TEST_TREE_FILES) ## Checks if the solidity test files are out of 
 
 test-tree: $(TEST_TREE_MARKDOWN) ## Generates a markdown file with the test definitions
 
-
-test-llm-prompt: export PROMPT=$(TEST_TREE_GENERATION_PROMPT)
-
-.PHONY: test-llm-prompt
-test-llm-prompt: ## Generates a prompt to generate the test tree for a given file
-	@if [ -z "$(file)" ] ; then \
-		echo "Invoke like:" ; \
-		echo "  $$ make $(@) file=./path/to/file" ; \
-		echo ; \
-		exit 1 ; \
-	fi
-	@stat $(file) > /dev/null
-	@/bin/bash -c 'printf "%s\n" "$$PROMPT"'
-	@echo
-	@echo "\`\`\`"
-	@cat $(file)
-	@echo "\`\`\`"
-
 # Generate single a markdown file with the test trees
 $(TEST_TREE_MARKDOWN): $(TEST_TREE_FILES)
 	@echo "[Markdown]   $(@)"
@@ -196,6 +178,81 @@ $(TEST_TREE_FILES): $(TEST_SOURCE_FILES)
 	  echo "[Convert]    $$file -> $${file%.t.yaml}.tree" ; \
 		cat $$file | $(MAKE_TEST_TREE_CMD) > $${file%.t.yaml}.tree ; \
 	done
+
+# LLM prompt generation
+
+test-tree-prompt: export PROMPT_TEMPLATE=$(TEST_TREE_GENERATION_PROMPT)
+
+.PHONY: test-tree-prompt
+test-tree-prompt: ## Prints an LLM prompt to generate the test definitions for a given file
+	@if [ -z "$(src)" ] ; then \
+		echo "Usage:" ; \
+		echo "  $$ make $(@) src=./path/to/reference-file" ; \
+		echo ; \
+		exit 1 ; \
+	fi
+	@stat $(src) > /dev/null
+	@/bin/bash -c 'printf "%s\n" "$$PROMPT_TEMPLATE"'
+	@echo
+	@echo "\`\`\`"
+	@cat $(src)
+	@echo "\`\`\`"
+
+test-prompt: export PROMPT_TEMPLATE=$(TEST_FILE_GENERATION_PROMPT)
+test-prompt: CONTRACT_FILES=$(wildcard src/**/*.sol)
+test-prompt: DAO_BUILDER=test/builders/SimpleBuilder.sol
+test-prompt: TEST_BASE=test/lib/TestBase.sol
+
+.PHONY: test-prompt
+test-prompt: ## Prints an LLM prompt to implement the tests for a given contract
+	@if [ -z "$(def)" ] || [ -z "$(src)" ] ; then \
+		echo "Usage:" ; \
+		echo "  $$ make $(@) def=./MyContract.t.yaml src=./MyContract.t.sol" ; \
+		echo "  $$ make $(@) def=./MyContract.t.yaml src=./MyContract.t.sol ref=./ExistingTest.ts" ; \
+		echo ; \
+		exit 1 ; \
+	fi
+	@printf '%s' "$$PROMPT_TEMPLATE" | awk \
+		-v sources="$(CONTRACT_FILES)" \
+		-v dao_builder_file="$(DAO_BUILDER)" \
+		-v test_base_file="$(TEST_BASE)" \
+		-v test_tree_file="$(def)" \
+		-v target_test_file="$(src)" \
+		-v opt_reference_file="$(ref)" \
+		' \
+		function readfile(filename) { \
+			while ((getline line < filename) > 0) { \
+				print line; \
+			} \
+			close(filename); \
+		} \
+		BEGIN { \
+			split(sources, source_files, " "); \
+		} \
+		/<<SOURCE>>/ { \
+			for (i in source_files) { \
+				readfile(source_files[i]); \
+			} \
+			next; \
+		} \
+		/<<DAO_BUILDER>>/ { \
+			readfile(dao_builder_file); \
+			next; \
+		} \
+		/<<TEST_BASE>>/ { \
+			readfile(test_base_file); \
+			next; \
+		} \
+		/<<TEST_TREE>>/ { \
+			readfile(test_tree_file); \
+			next; \
+		} \
+		/<<TARGET_TEST_FILE>>/ { \
+			readfile(target_test_file); \
+			next; \
+		} \
+		{ print; } \
+		'
 
 ## Deployment targets:
 

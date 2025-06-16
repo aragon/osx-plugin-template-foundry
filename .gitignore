@@ -10,7 +10,7 @@ out
 lcov.info
 
 # Testing
-test/*.tree
+test/**/*.tree
 lcov.info
 report
 

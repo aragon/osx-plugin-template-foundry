@@ -186,17 +186,23 @@ test-tree-prompt: export PROMPT_TEMPLATE=$(TEST_TREE_GENERATION_PROMPT)
 .PHONY: test-tree-prompt
 test-tree-prompt: ## Prints an LLM prompt to generate the test definitions for a given file
 	@if [ -z "$(src)" ] ; then \
-		echo "Usage:" ; \
-		echo "  $$ make $(@) src=./path/to/reference-file" ; \
-		echo ; \
+		printf "Usage:\n   $$ make $(@) src=./path/to/source-file\n" ; \
 		exit 1 ; \
 	fi
 	@stat $(src) > /dev/null
-	@/bin/bash -c 'printf "%s\n" "$$PROMPT_TEMPLATE"'
-	@echo
-	@echo "\`\`\`"
-	@cat $(src)
-	@echo "\`\`\`"
+	@printf '%s' "$$PROMPT_TEMPLATE" | awk \
+		-v source_file="$(src)" \
+		' \
+		function readfile(filename) { \
+			while ((getline line < filename) > 0) { print line; } \
+			close(filename); \
+		} \
+		/<<SOURCE_FILE>>/ { \
+			readfile(source_file); \
+			next; \
+		} \
+		{ print; } \
+		'
 
 test-prompt: export PROMPT_TEMPLATE=$(TEST_FILE_GENERATION_PROMPT)
 test-prompt: CONTRACT_FILES=$(wildcard src/**/*.sol)
@@ -206,10 +212,7 @@ test-prompt: TEST_BASE=test/lib/TestBase.sol
 .PHONY: test-prompt
 test-prompt: ## Prints an LLM prompt to implement the tests for a given contract
 	@if [ -z "$(def)" ] || [ -z "$(src)" ] ; then \
-		echo "Usage:" ; \
-		echo "  $$ make $(@) def=./MyContract.t.yaml src=./MyContract.t.sol" ; \
-		echo "  $$ make $(@) def=./MyContract.t.yaml src=./MyContract.t.sol ref=./ExistingTest.ts" ; \
-		echo ; \
+	    printf "Usage:\n   $$ make $(@) def=./MyContract.t.yaml src=./MyContract.t.sol\n" ; \
 		exit 1 ; \
 	fi
 	@printf '%s' "$$PROMPT_TEMPLATE" | awk \
@@ -217,8 +220,7 @@ test-prompt: ## Prints an LLM prompt to implement the tests for a given contract
 		-v dao_builder_file="$(DAO_BUILDER)" \
 		-v test_base_file="$(TEST_BASE)" \
 		-v test_tree_file="$(def)" \
-		-v target_test_file="$(src)" \
-		-v opt_reference_file="$(ref)" \
+		-v current_test_file="$(src)" \
 		' \
 		function readfile(filename) { \
 			while ((getline line < filename) > 0) { \
@@ -248,7 +250,7 @@ test-prompt: ## Prints an LLM prompt to implement the tests for a given contract
 			next; \
 		} \
 		/<<TARGET_TEST_FILE>>/ { \
-			readfile(target_test_file); \
+			readfile(current_test_file); \
 			next; \
 		} \
 		{ print; } \

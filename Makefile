@@ -9,9 +9,9 @@ SHELL:=/bin/bash
 # CONSTANTS
 
 # NOTE: Choose the appropriate deployment script
-DEPLOYMENT_SCRIPT := script/DeploySimple.s.sol:DeploySimpleScript
-# DEPLOYMENT_SCRIPT := script/DeployDaoWithPlugins.s.sol:DeployDaoWithPluginsScript
-# DEPLOYMENT_SCRIPT := script/DeployViaFactory.s.sol:DeployViaFactoryScript
+DEPLOYMENT_SCRIPT := DeploySimple
+# DEPLOYMENT_SCRIPT := DeployDaoWithPlugins
+# DEPLOYMENT_SCRIPT := DeployViaFactory
 
 SOLC_VERSION := $(shell cat foundry.toml | grep solc | cut -d= -f2 | xargs echo || echo "0.8.28")
 SUPPORTED_VERIFIERS := etherscan blockscout sourcify routescan-mainnet routescan-testnet
@@ -31,6 +31,7 @@ TEST_COVERAGE_SRC_FILES := $(wildcard test/*.sol test/**/*.sol src/*.sol src/**/
 TEST_SOURCE_FILES := $(wildcard test/*.t.yaml test/fork-tests/*.t.yaml)
 TEST_TREE_FILES := $(TEST_SOURCE_FILES:.t.yaml=.tree)
 DEPLOYMENT_ADDRESS := $(shell cast wallet address --private-key $(DEPLOYMENT_PRIVATE_KEY) 2>/dev/null || echo "NOTE: DEPLOYMENT_PRIVATE_KEY is not properly set on .env" > /dev/stderr)
+DEPLOY_SCRIPT_PARAM := script/$(DEPLOYMENT_SCRIPT).s.sol:$(DEPLOYMENT_SCRIPT)Script
 
 DEPLOYMENT_LOG_FILE=deployment-$(NETWORK_NAME)-$(shell date +"%y-%m-%d-%H-%M").log
 
@@ -263,7 +264,7 @@ predeploy: export SIMULATION=true
 .PHONY: predeploy
 predeploy: ## Simulate a protocol deployment
 	@echo "Simulating the deployment"
-	forge script $(DEPLOYMENT_SCRIPT) \
+	forge script $(DEPLOY_SCRIPT_PARAM) \
 		--rpc-url $(RPC_URL) \
 		$(VERBOSITY)
 
@@ -271,7 +272,7 @@ predeploy: ## Simulate a protocol deployment
 deploy: test ## Deploy the protocol, verify the source code and write to ./artifacts
 	@echo "Starting the deployment"
 	@mkdir -p $(LOGS_FOLDER) $(ARTIFACTS_FOLDER)
-	forge script $(DEPLOYMENT_SCRIPT) \
+	forge script $(DEPLOY_SCRIPT_PARAM) \
 		--rpc-url $(RPC_URL) \
 		--retries 10 \
 		--delay 8 \
@@ -285,7 +286,7 @@ deploy: test ## Deploy the protocol, verify the source code and write to ./artif
 resume: test ## Retry pending deployment transactions, verify the code and write to ./artifacts
 	@echo "Retrying the deployment"
 	@mkdir -p $(LOGS_FOLDER) $(ARTIFACTS_FOLDER)
-	forge script $(DEPLOYMENT_SCRIPT) \
+	forge script $(DEPLOY_SCRIPT_PARAM) \
 		--rpc-url $(RPC_URL) \
 		--retries 10 \
 		--delay 8 \

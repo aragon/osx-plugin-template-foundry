@@ -158,11 +158,12 @@ $ make
 [...]
 Testing lifecycle:
 
-- make test             Run unit tests, locally
-- make test-coverage    Generate an HTML coverage report under ./report
+- make test               Run unit tests, locally
+- make test-fork          Run fork tests, using RPC_URL
+- make test-coverage      Generate an HTML coverage report under ./report
 ```
 
-Run `make test` or `forge test -vvv` to check the logic's accordance to the specs.
+Run `make test` or `make test-fork` to check the logic's accordance to the specs. The latter will require `RPC_URL` to be defined.
 
 ### Writing tests
 

@@ -1,68 +1,109 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.24;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.28;
 
+import {TestBase} from "./lib/TestBase.sol";
+
+import {SimpleBuilder} from "./builders/SimpleBuilder.sol";
 import {DAO} from "@aragon/osx/core/dao/DAO.sol";
+import {DaoUnauthorized} from "@aragon/osx-commons-contracts/src/permission/auth/auth.sol";
+import {MyUpgradeablePlugin} from "../src/MyUpgradeablePlugin.sol";
 
-import {DaoUnauthorized} from "@aragon/osx/core/utils/auth.sol";
-import {AragonTest} from "./base/AragonTest.sol";
-import {MyPluginSetup} from "../src/MyPluginSetup.sol";
-import {MyPlugin} from "../src/MyPlugin.sol";
+contract MyPluginTest is TestBase {
+    DAO dao;
+    MyUpgradeablePlugin plugin;
 
-abstract contract MyPluginTest is AragonTest {
-    DAO internal dao;
-    MyPlugin internal plugin;
-    MyPluginSetup internal setup;
-    uint256 internal constant NUMBER = 420;
-
-    function setUp() public virtual {
-        setup = new MyPluginSetup();
-        bytes memory setupData = abi.encode(NUMBER);
-
-        (DAO _dao, address _plugin) = createMockDaoWithPlugin(setup, setupData);
-
-        dao = _dao;
-        plugin = MyPlugin(_plugin);
-    }
-}
-
-contract MyPluginInitializeTest is MyPluginTest {
-    function setUp() public override {
-        super.setUp();
+    function setUp() public {
+        // Customize the Builder to feature more default values and overrides
+        (dao, plugin) = new SimpleBuilder().withInitialNumber(123).build();
     }
 
-    function test_initialize() public {
-        assertEq(address(plugin.dao()), address(dao));
-        assertEq(plugin.number(), NUMBER);
+    modifier givenThePluginIsAlreadyInitialized() {
+        _;
     }
 
-    function test_reverts_if_reinitialized() public {
+    function test_RevertWhen_CallingInitialize() external givenThePluginIsAlreadyInitialized {
+        // It Should revert
         vm.expectRevert("Initializable: contract is already initialized");
         plugin.initialize(dao, 69);
     }
-}
 
-contract MyPluginStoreNumberTest is MyPluginTest {
-    function setUp() public override {
-        super.setUp();
+    function test_WhenCallingDaoAndNumber() external view givenThePluginIsAlreadyInitialized {
+        // It Should return the right values
+        assertEq(address(plugin.dao()), address(dao));
+        assertEq(plugin.number(), 123);
     }
 
-    function test_store_number() public {
-        vm.prank(address(dao));
-        plugin.storeNumber(69);
-        assertEq(plugin.number(), 69);
+    modifier givenTheCallerHasNoPermission() {
+        address[] memory managers = new address[](2);
+        managers[0] = alice;
+        managers[1] = bob;
+
+        (dao, plugin) = new SimpleBuilder().withDaoOwner(alice).withManagers(managers).build();
+
+        _;
     }
 
-    function test_reverts_if_not_auth() public {
+    function test_RevertWhen_CallingSetNumber() external givenTheCallerHasNoPermission {
+        // It Should revert
+
         // error DaoUnauthorized({dao: address(_dao),  where: _where,  who: _who,permissionId: _permissionId });
+        vm.prank(carol);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                DaoUnauthorized.selector,
-                dao,
-                plugin,
-                address(this),
-                keccak256("STORE_PERMISSION")
-            )
+            abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, carol, keccak256("MANAGER_PERMISSION"))
         );
-        plugin.storeNumber(69);
+        plugin.setNumber(0);
+        assertEq(plugin.number(), 1);
+
+        vm.prank(david);
+        vm.expectRevert(
+            abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, david, keccak256("MANAGER_PERMISSION"))
+        );
+        plugin.setNumber(50);
+        assertEq(plugin.number(), 1);
+
+        // Grant the missing permission
+        vm.startPrank(alice);
+        dao.grant(address(plugin), david, plugin.MANAGER_PERMISSION_ID());
+        vm.stopPrank();
+
+        // OK
+        vm.prank(david);
+        plugin.setNumber(50);
+        assertEq(plugin.number(), 50);
+    }
+
+    modifier givenTheCallerHasPermission() {
+        address[] memory managers = new address[](2);
+        managers[0] = alice;
+        managers[1] = bob;
+
+        (dao, plugin) = new SimpleBuilder().withInitialNumber(100).withManagers(managers).build();
+
+        _;
+    }
+
+    function test_WhenCallingSetNumber2() external givenTheCallerHasPermission {
+        // It should update the stored number
+
+        vm.prank(alice);
+        plugin.setNumber(69);
+
+        vm.prank(bob);
+        plugin.setNumber(123);
+    }
+
+    function test_WhenCallingNumber() external {
+        // It Should return the right value
+        (, plugin) = new SimpleBuilder().build();
+        assertEq(plugin.number(), 1);
+
+        plugin.setNumber(69);
+        assertEq(plugin.number(), 69);
+
+        plugin.setNumber(123);
+        assertEq(plugin.number(), 123);
+
+        plugin.setNumber(0x1133557799);
+        assertEq(plugin.number(), 0x1133557799);
     }
 }

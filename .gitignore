@@ -1,18 +1,20 @@
-# directories
+# Directories
 cache
 coverage
-node_modules
 out
 
-# files
+# Files
 *.env
 *.log
 .DS_Store
-.pnp.*
 lcov.info
-yarn.lock
 
-# broadcasts
+# Testing
+test/**/*.tree
+lcov.info
+report
+
+# Broadcasts
 !broadcast
 broadcast/*
 broadcast/*/31337/

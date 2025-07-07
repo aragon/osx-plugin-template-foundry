@@ -11,7 +11,7 @@ This template is designed to help get developers up and running with OSx in a fe
 - **Deployment scripts and factories**: Starter scripts for simple plugin publishing, as well as for custom DAO deployments.
 - **Flexible testing environment**: A set of tools to run unit tests, fork tests, describe use cases and prepare entire deployments in one line.
 - **Multi explorer code verification**: Verify on multiple block explorers given the same deployment
-- **Streamlined action runner**: A self documented [makefile](#using-the-makefile) to manage the entire workflow
+- **Streamlined action runner**: A self documenting [makefile](#using-the-makefile) to manage the entire workflow
 - **Code snippets and examples**
 
 ## Prerequisites 📋
@@ -26,22 +26,13 @@ Optional:
 
 ## Getting Started 🏁
 
-To get started, clone this repository and initialize the repository:
+[Click hete](https://github.com/new?template_name=osx-plugin-template-foundry&template_owner=aragon) to create a repository from the template.
+
+Clone your new repository and initialize it:
 
 ```bash
-# Clone the repo
-git clone --recurse-submodules https://github.com/aragon/osx-plugin-template-foundry my-plugin
+git clone git@github.com:<your-org>/my-plugin
 cd my-plugin
-
-# Detach from the template repo
-git branch -M old-main
-git checkout --orphan main
-git add -A
-git commit -m "Initial commit from osx-plugin-template-foundry"
-git remote rm origin
-git branch -D old-main
-# git remote add origin <git-url>
-# git push -u origin main
 
 # Initialize the repo
 cp .env.example .env

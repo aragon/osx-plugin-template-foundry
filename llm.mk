@@ -63,7 +63,7 @@ The only supported cases are:
 - The name of the root node should contain a name that conveys what the contract is (i.e: `TokenVotingPluginTest`)
 
 Now look at the source file (below) and generate an accurate and exhaustive test definition file in yaml using the structure you saw above.
-The structure should cover absolutely all the cases, scenarios and edge cases from the source file below.
+The structure should cover absolutely all the scenarios and edge cases arising from the source file below, as well as any scenario from the external components that might interact with it.
 
 Warning: Yaml fields with inner quotes like `comment: Creating DAO's` or `- it: Should do "this" and "that"` or `- comment: The 'auth(MANAGER_PERMISSION_ID)' modifier should fail` will break the yaml parser, because of an invalid syntax. In these cases you must wrap the whole string with external quotes to produce a valid yaml.
 

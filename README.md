@@ -158,7 +158,9 @@ Run `make test` or `make test-fork` to check the logic's accordance to the specs
 
 ### Writing tests
 
-Optionally, tests with hierarchies can be described using yaml files like [MyPlugin.t.yaml](./test/MyPlugin.t.yaml), which will be transformed into solidity files by running `make sync-tests`, thanks to [bulloak](https://github.com/alexfertel/bulloak).
+Regular Foundry test contracts can be written as usual under the `tests` folder. 
+
+Optionally, you may want to describe a hierarchy of scenarios using yaml files like [MyPlugin.t.yaml](./test/MyPlugin.t.yaml). These can be transformed into a solidity scaffold by running `make sync-tests`, thanks to [bulloak](https://github.com/alexfertel/bulloak).
 
 Create a file with `.t.yaml` extension within the `test` folder and describe a hierarchy using the following structure:
 
@@ -209,12 +211,12 @@ Testing lifecycle:
 
 - make test-llm-prompt    Generates a prompt to generate the test tree for a given file
 
-$ make test-llm-prompt file=./src/MyUpgradeablePlugin.sol
+$ make test-llm-prompt src=./src/MyUpgradeablePlugin.sol
 ```
 
-This command will generate a prompt that you can copy to an LLM so that it generates a yaml test tree definition for you.
+This command will make a prompt that you can provide to an LLM so that it assists in generating test definitions.
 
-You can copy the resulting yaml output into a file like `test/MyUpgradeablePlugin.t.yaml` and run `make sync-tests` to get a test scaffold with the unimplemented tests.
+Copy the resulting output into a file like `test/MyUpgradeablePlugin.t.yaml` and run `make sync-tests` to get a solidity scaffold.
 
 ### Testing with a local OSx
 

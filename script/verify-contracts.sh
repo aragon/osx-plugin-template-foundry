@@ -179,7 +179,7 @@ EXPLORER_API_KEY="${4:-}"
 
 # Validate explorer type
 case "$EXPLORER_TYPE" in
-  etherscan|blockscout|sourcify)
+  etherscan|blockscout|sourcify|custom)
     ;;
   *)
     echo "Error: Invalid explorer_type '$EXPLORER_TYPE'."

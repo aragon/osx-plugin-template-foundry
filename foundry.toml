@@ -5,7 +5,11 @@ libs = ["lib"]
 
 fs_permissions = [{ access = "write", path = "./artifacts" }]
 
+# General
 evm_version = "cancun"
+# Chiliz
+# evm_version = "shanghai"
+
 optimizer = true
 optimizer-runs = 200
 solc = "0.8.28"

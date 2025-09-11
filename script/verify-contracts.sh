@@ -134,6 +134,7 @@ verify_contract() {
       ;;
     sourcify)
       verify_args+=(--verifier sourcify)
+      verify_args+=(--chain-id $CHAIN_ID)
       if [[ -n "$EXPLORER_API_KEY" ]]; then
         verify_args+=(--etherscan-api-key \"$EXPLORER_API_KEY\")
       fi

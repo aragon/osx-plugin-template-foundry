@@ -327,7 +327,15 @@ verify-sourcify: broadcast/Deploy.s.sol/$(CHAIN_ID)/run-latest.json ## Verify th
 	forge build $(FORGE_BUILD_CUSTOM_PARAMS)
 	bash $(VERIFY_CONTRACTS_SCRIPT) $(CHAIN_ID) $(VERIFIER) "" ""
 
-##
+## Other:
+
+.PHONY: storage-info
+storage-info: ## Show the storage layout of a contract
+	@if [ -z "$(src)" ] ; then \
+		printf "Usage:\n   $$ make $(@) src=./MyContract.t.sol\n" ; \
+		exit 1 ; \
+	fi
+	forge inspect $(src) storageLayout
 
 .PHONY: refund
 refund: ## Refund the remaining balance left on the deployment account

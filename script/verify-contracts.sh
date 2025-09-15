@@ -134,6 +134,7 @@ verify_contract() {
       ;;
     sourcify)
       verify_args+=(--verifier sourcify)
+      verify_args+=(--chain-id $CHAIN_ID)
       if [[ -n "$EXPLORER_API_KEY" ]]; then
         verify_args+=(--etherscan-api-key \"$EXPLORER_API_KEY\")
       fi
@@ -179,7 +180,7 @@ EXPLORER_API_KEY="${4:-}"
 
 # Validate explorer type
 case "$EXPLORER_TYPE" in
-  etherscan|blockscout|sourcify)
+  etherscan|blockscout|sourcify|custom)
     ;;
   *)
     echo "Error: Invalid explorer_type '$EXPLORER_TYPE'."

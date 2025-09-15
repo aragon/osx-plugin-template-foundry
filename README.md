@@ -270,9 +270,15 @@ When running a production deployment ceremony, you can use these steps as a refe
 - [ ] I have cloned the official repository on my computer and I have checked out the `main` branch
 - [ ] I am using the latest official docker engine, running a Debian Linux (stable) image
   - [ ] I have run `docker run --rm -it -v .:/deployment debian:bookworm-slim`
-  - [ ] I have run `apt update && apt install -y make curl git vim neovim bc`
-  - [ ] I have run `curl -L https://foundry.paradigm.xyz | bash`
-  - [ ] I have run `source /root/.bashrc && foundryup`
+  - [ ] I have run `apt update && apt install -y make curl git vim neovim bc jq`
+  - On **standard EVM networks**:
+    - [ ] I have run `curl -L https://foundry.paradigm.xyz | bash`
+    - [ ] I have run `source /root/.bashrc`
+    - [ ] I have run `foundryup`
+  - On **ZkSync networks**:
+    - [ ] I have run `curl -L https://raw.githubusercontent.com/matter-labs/foundry-zksync/main/install-foundry-zksync | bash`
+    - [ ] I have run `source /root/.bashrc`
+    - [ ] I have run `foundryup-zksync`
   - [ ] I have run `cd /deployment`
   - [ ] I have run `cp .env.example .env`
   - [ ] I have run `make init`

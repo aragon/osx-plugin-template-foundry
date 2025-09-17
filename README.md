@@ -287,7 +287,6 @@ When running a production deployment ceremony, you can use these steps as a refe
   - [ ] I have created a new burner wallet with `cast wallet new` and copied the private key to `DEPLOYMENT_PRIVATE_KEY` within `.env`
   - [ ] I have set the correct `RPC_URL` for the network
   - [ ] I have set the correct `CHAIN_ID` for the network
-  - [ ] The value of `NETWORK_NAME` is listed within `constants.mk`, at the appropriate place
   - [ ] I have set `ETHERSCAN_API_KEY` or `BLOCKSCOUT_HOST_NAME` (when relevant to the target network)
   - [ ] (TO DO: Add a step to check your own variables here)
   - [ ] I have printed the contents of `.env` to the screen
@@ -344,7 +343,6 @@ Verification:
 
 These targets use the last deployment data under `broadcast/Deploy.s.sol/<chain-id>/run-latest.json`.
 - Ensure that the required variables are set within the `.env` file.
-- Ensure that `NETWORK_NAME` is listed on the right section under `constants.mk`, according to the block explorer that you want to target
 
 This flow will attempt to verify all the contracts in one go, but yo umay still need to issue additional manual verifications, depending on the circumstances.
 

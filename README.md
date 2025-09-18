@@ -158,7 +158,7 @@ Run `make test` or `make test-fork` to check the logic's accordance to the specs
 
 ### Writing tests
 
-Regular Foundry test contracts can be written as usual under the `tests` folder. 
+Regular Foundry test contracts can be written as usual under the `tests` folder.
 
 Optionally, you may want to describe a hierarchy of scenarios using yaml files like [MyPlugin.t.yaml](./test/MyPlugin.t.yaml). These can be transformed into a solidity scaffold by running `make sync-tests`, thanks to [bulloak](https://github.com/alexfertel/bulloak).
 
@@ -287,7 +287,6 @@ When running a production deployment ceremony, you can use these steps as a refe
   - [ ] I have created a new burner wallet with `cast wallet new` and copied the private key to `DEPLOYMENT_PRIVATE_KEY` within `.env`
   - [ ] I have set the correct `RPC_URL` for the network
   - [ ] I have set the correct `CHAIN_ID` for the network
-  - [ ] The value of `NETWORK_NAME` is listed within `constants.mk`, at the appropriate place
   - [ ] I have set `ETHERSCAN_API_KEY` or `BLOCKSCOUT_HOST_NAME` (when relevant to the target network)
   - [ ] (TO DO: Add a step to check your own variables here)
   - [ ] I have printed the contents of `.env` to the screen
@@ -344,7 +343,6 @@ Verification:
 
 These targets use the last deployment data under `broadcast/Deploy.s.sol/<chain-id>/run-latest.json`.
 - Ensure that the required variables are set within the `.env` file.
-- Ensure that `NETWORK_NAME` is listed on the right section under `constants.mk`, according to the block explorer that you want to target
 
 This flow will attempt to verify all the contracts in one go, but yo umay still need to issue additional manual verifications, depending on the circumstances.
 
@@ -361,6 +359,18 @@ Where:
 - `<chain-id>` the ID of the chain
 - `<args>` the constructor arguments
   - Get them with `$(cast abi-encode "constructor(address param1, uint256 param2,...)" param1 param2 ...)`
+
+## Troubleshooting (ZkSync)
+
+ZkSync and ZkSync Sepolia can become tricky to work with. Below are some of the workarounds that have helped deploying in the past:
+
+- Increase the deployment wallet's funds (substantially). Even if only a tiny fraction is used. Then refund the rest.
+- Try using `pragma solidity 0.8.19` in every contract and `solc = "0.8.19"` in `foundry.toml`
+- Try using `evm_version="prague"` in `foundry.toml`
+- Tests might be failing with Foundry ZkSync, even though they work with the normal Foundry binaries.
+  - If nested events or enum's fail to compile in tests, try declaring them in-line.
+  - If that doesn't work either, run `make -n deploy` and execute the shown commands except the first one
+- Try creating a complete brand new Foundry ZkSync project, then copy the config and contracts over.
 
 ## Security 🔒
 

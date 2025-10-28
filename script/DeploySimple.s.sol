@@ -6,7 +6,6 @@ import {stdJson} from "forge-std/StdJson.sol";
 
 import {PluginRepoFactory} from "@aragon/osx/framework/plugin/repo/PluginRepoFactory.sol";
 import {PluginRepo} from "@aragon/osx/framework/plugin/repo/PluginRepo.sol";
-import {hashHelpers, PluginSetupRef} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessorHelpers.sol";
 import {MyPluginSetup} from "../src/setup/MyPluginSetup.sol";
 
 /**

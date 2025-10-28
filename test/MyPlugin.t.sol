@@ -35,10 +35,10 @@ contract MyPluginTest is TestBase {
 
     modifier givenTheCallerHasNoPermission() {
         address[] memory managers = new address[](2);
-        managers[0] = alice;
-        managers[1] = bob;
+        managers[0] = ALICE;
+        managers[1] = BOB;
 
-        (dao, plugin) = new SimpleBuilder().withDaoOwner(alice).withManagers(managers).build();
+        (dao, plugin) = new SimpleBuilder().withDaoOwner(ALICE).withManagers(managers).build();
 
         _;
     }
@@ -47,35 +47,35 @@ contract MyPluginTest is TestBase {
         // It Should revert
 
         // error DaoUnauthorized({dao: address(_dao),  where: _where,  who: _who,permissionId: _permissionId });
-        vm.prank(carol);
+        vm.prank(CAROL);
         vm.expectRevert(
-            abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, carol, keccak256("MANAGER_PERMISSION"))
+            abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, CAROL, keccak256("MANAGER_PERMISSION"))
         );
         plugin.setNumber(0);
         assertEq(plugin.number(), 1);
 
-        vm.prank(david);
+        vm.prank(DAVID);
         vm.expectRevert(
-            abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, david, keccak256("MANAGER_PERMISSION"))
+            abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, DAVID, keccak256("MANAGER_PERMISSION"))
         );
         plugin.setNumber(50);
         assertEq(plugin.number(), 1);
 
         // Grant the missing permission
-        vm.startPrank(alice);
-        dao.grant(address(plugin), david, plugin.MANAGER_PERMISSION_ID());
+        vm.startPrank(ALICE);
+        dao.grant(address(plugin), DAVID, plugin.MANAGER_PERMISSION_ID());
         vm.stopPrank();
 
         // OK
-        vm.prank(david);
+        vm.prank(DAVID);
         plugin.setNumber(50);
         assertEq(plugin.number(), 50);
     }
 
     modifier givenTheCallerHasPermission() {
         address[] memory managers = new address[](2);
-        managers[0] = alice;
-        managers[1] = bob;
+        managers[0] = ALICE;
+        managers[1] = BOB;
 
         (dao, plugin) = new SimpleBuilder().withInitialNumber(100).withManagers(managers).build();
 
@@ -85,10 +85,10 @@ contract MyPluginTest is TestBase {
     function test_WhenCallingSetNumber2() external givenTheCallerHasPermission {
         // It should update the stored number
 
-        vm.prank(alice);
+        vm.prank(ALICE);
         plugin.setNumber(69);
 
-        vm.prank(bob);
+        vm.prank(BOB);
         plugin.setNumber(123);
     }
 

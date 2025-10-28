@@ -16,6 +16,3 @@ optimizer = true
 optimizer-runs = 200
 solc = "0.8.28"
 via_ir = false
-
-[profile.default.zksync]
-evm_version = "prague"

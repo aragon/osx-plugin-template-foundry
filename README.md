@@ -74,38 +74,41 @@ The `Makefile` is the target launcher of the project. It's the recommended way t
 
 ```
 $ make
-Available targets:
+Available recipes:
 
-- make help               Display the available targets
-
-- make init               Check the dependencies and prompt to install if needed
-- make clean              Clean the build artifacts
+  make init                 Check the dependencies and prompt to install if needed
+  make clean                Clean the build artifacts
 
 Testing lifecycle:
 
-- make test               Run unit tests, locally
-- make test-fork          Run fork tests, using RPC_URL
-- make test-coverage      Generate an HTML coverage report under ./report
+  make test                 Run unit tests, locally
+  make test-fork            Run fork tests, using RPC_URL
+  make test-coverage        Generate an HTML coverage report under ./report
 
-- make sync-tests         Scaffold or sync test definitions into solidity tests
-- make check-tests        Checks if the solidity test files are out of sync
-- make test-tree          Generates a markdown file with the test definitions
-- make test-tree-prompt   Prints an LLM prompt to generate the test definitions for a given file
-- make test-prompt        Prints an LLM prompt to implement the tests for a given contract
+  make sync-tests           Scaffold or sync test definitions into solidity tests
+  make check-tests          Checks if the solidity test files are out of sync
+  make test-tree            Generates a markdown file with the test definitions
+  make test-tree-prompt     Prints an LLM prompt to generate the test definitions for a given file
+  make test-prompt          Prints an LLM prompt to implement the tests for a given contract
 
 Deployment targets:
 
-- make predeploy          Simulate a protocol deployment
-- make deploy             Deploy the protocol, verify the source code and write to ./artifacts
-- make resume             Retry pending deployment transactions, verify the code and write to ./artifacts
+  make predeploy            Simulate a protocol deployment
+  make deploy               Deploy the protocol, verify the source code and write to ./artifacts
+  make resume               Retry pending deployment transactions, verify the code and write to ./artifacts
 
 Verification:
 
-- make verify-etherscan   Verify the last deployment on an Etherscan (compatible) explorer
-- make verify-blockscout  Verify the last deployment on BlockScout
-- make verify-sourcify    Verify the last deployment on Sourcify
+  make verify-etherscan     Verify the last deployment on an Etherscan (compatible) explorer
+  make verify-blockscout    Verify the last deployment on BlockScout
+  make verify-sourcify      Verify the last deployment on Sourcify
 
-- make refund             Refund the remaining balance left on the deployment account
+Other:
+
+  make storage-info         Show the storage layout of a contract
+  make refund               Refund the remaining balance left on the deployment account
+
+  make help                 Show the main recipes
 ```
 
 ## Template Variants 🌈

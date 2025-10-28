@@ -1,10 +1,9 @@
-.DEFAULT_TARGET: help
+.DEFAULT_GOAL := help
+SHELL:=/bin/bash
 
 # Import settings and constants
 include .env
 include llm.mk
-
-SHELL:=/bin/bash
 
 # CONSTANTS
 
@@ -85,21 +84,6 @@ else ifeq ($(CHAIN_ID),324)
 endif
 
 # TARGETS
-
-.PHONY: help
-help: ## Display the available targets
-	@echo -e "Available targets:\n"
-	@cat Makefile | while IFS= read -r line; do \
-	   if [[ "$$line" == "##" ]]; then \
-			echo "" ; \
-		elif [[ "$$line" =~ ^##\ (.*)$$ ]]; then \
-			printf "\n$${BASH_REMATCH[1]}\n\n" ; \
-		elif [[ "$$line" =~ ^([^:]+):(.*)##\ (.*)$$ ]]; then \
-			printf "%s %-*s %s\n" "- make" 18 "$${BASH_REMATCH[1]}" "$${BASH_REMATCH[3]}" ; \
-		fi ; \
-	done
-
-##
 
 .PHONY: init
 init: ## Check the dependencies and prompt to install if needed
@@ -363,7 +347,27 @@ refund: ## Refund the remaining balance left on the deployment account
 			--value $$REMAINING \
 			$(REFUND_ADDRESS)
 
-# Other: Troubleshooting and helpers
+##
+
+ACCENT := \e[33m
+LIGHTER := \e[37m
+NORMAL := \e[0m
+COLUMN_START := 20
+
+.PHONY: help
+help: ## Show the main recipes
+	@echo -e "Available recipes:\n"
+	@cat Makefile | while IFS= read -r line; do \
+		if [[ "$$line" == "##" ]]; then \
+			echo "" ; \
+		elif [[ "$$line" =~ ^##\ (.*)$$ ]]; then \
+			printf "\n$${BASH_REMATCH[1]}\n\n" ; \
+		elif [[ "$$line" =~ ^([^:#]+):(.*)##\ (.*)$$ ]]; then \
+			printf "  make $(ACCENT)%-*s$(LIGHTER) %s$(NORMAL)\n" $(COLUMN_START) "$${BASH_REMATCH[1]}" "$${BASH_REMATCH[3]}" ; \
+		fi ; \
+	done
+
+# Troubleshooting helpers
 
 .PHONY: gas-price
 gas-price:

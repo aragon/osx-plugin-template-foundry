@@ -5,7 +5,6 @@ import {TestBase} from "../lib/TestBase.sol";
 
 import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {MyUpgradeablePlugin} from "../../src/MyUpgradeablePlugin.sol";
-import {MyPluginSetup} from "../../src/setup/MyPluginSetup.sol";
 import {ProxyLib} from "@aragon/osx-commons-contracts/src/utils/deployment/ProxyLib.sol";
 
 contract SimpleBuilder is TestBase {
@@ -46,11 +45,9 @@ contract SimpleBuilder is TestBase {
     function build() public returns (DAO dao, MyUpgradeablePlugin plugin) {
         // Deploy the DAO with `daoOwner` as ROOT
         dao = DAO(
-            payable(
-                ProxyLib.deployUUPSProxy(
+            payable(ProxyLib.deployUUPSProxy(
                     address(DAO_BASE), abi.encodeCall(DAO.initialize, ("", daoOwner, address(0x0), ""))
-                )
-            )
+                ))
         );
 
         // Plugin

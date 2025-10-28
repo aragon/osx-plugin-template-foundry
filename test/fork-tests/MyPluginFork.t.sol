@@ -38,22 +38,22 @@ contract MyPluginForkTest is ForkTestBase {
         assertEq(plugin.number(), 1);
 
         // Store a new number
-        vm.prank(bob);
+        vm.prank(BOB);
         plugin.setNumber(69);
         assertEq(plugin.number(), 69);
 
         // Check that Carol cannot set number
         vm.expectRevert(
-            abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, carol, plugin.MANAGER_PERMISSION_ID())
+            abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, CAROL, plugin.MANAGER_PERMISSION_ID())
         );
-        vm.prank(carol);
+        vm.prank(CAROL);
         plugin.setNumber(100);
 
         assertEq(plugin.number(), 69);
     }
 
     function test_endToEndFlow2() public {
-        (dao, repo, setup, plugin) = new ForkBuilder().withManager(david).withInitialNumber(200).build();
+        (dao, repo, setup, plugin) = new ForkBuilder().withManager(DAVID).withInitialNumber(200).build();
 
         // Check the Repo
         PluginRepo.Version memory version = repo.getLatestVersion(repo.latestRelease());
@@ -67,15 +67,15 @@ contract MyPluginForkTest is ForkTestBase {
         assertEq(plugin.number(), 200);
 
         // Store a new number
-        vm.prank(david);
+        vm.prank(DAVID);
         plugin.setNumber(69);
         assertEq(plugin.number(), 69);
 
         // Check that Carol cannot store a number
         vm.expectRevert(
-            abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, carol, plugin.MANAGER_PERMISSION_ID())
+            abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, CAROL, plugin.MANAGER_PERMISSION_ID())
         );
-        vm.prank(carol);
+        vm.prank(CAROL);
         plugin.setNumber(50);
         assertEq(plugin.number(), 69);
     }

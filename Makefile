@@ -104,11 +104,11 @@ test: export ETHERSCAN_API_KEY=
 
 .PHONY: test
 test: ## Run unit tests, locally
-	forge test $(FORGE_BUILD_CUSTOM_PARAMS) $(VERBOSITY) --no-match-path ./test/fork-tests/*.sol
+	forge test $(FORGE_BUILD_CUSTOM_PARAMS) $(VERBOSITY) --no-match-path "./test/fork-tests/*.sol"
 
 .PHONY: test-fork
 test-fork: ## Run fork tests, using RPC_URL
-	forge test $(FORGE_BUILD_CUSTOM_PARAMS) $(VERBOSITY) --match-path ./test/fork-tests/*.sol
+	forge test $(FORGE_BUILD_CUSTOM_PARAMS) $(VERBOSITY) --match-path "./test/fork-tests/*.sol"
 
 test-coverage: report/index.html ## Generate an HTML coverage report under ./report
 	@which open > /dev/null && open report/index.html || true

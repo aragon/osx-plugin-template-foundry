@@ -4,13 +4,10 @@ pragma solidity ^0.8.17;
 import {Script, console2} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 
-import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {DAOFactory} from "@aragon/osx/framework/dao/DAOFactory.sol";
 import {PluginRepoFactory} from "@aragon/osx/framework/plugin/repo/PluginRepoFactory.sol";
 import {PluginSetupProcessor} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessor.sol";
-import {PluginRepo} from "@aragon/osx/framework/plugin/repo/PluginRepo.sol";
 import {DeploymentFactory} from "../src/factory/DeploymentFactory.sol";
-import {MyPluginSetup} from "../src/setup/MyPluginSetup.sol";
 
 /**
  * This factory performs the following tasks:

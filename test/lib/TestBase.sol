@@ -1,26 +1,23 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import {DAO} from "@aragon/osx/core/dao/DAO.sol";
-import {IPluginSetup, PluginSetup} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessor.sol";
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {ALICE_ADDRESS, BOB_ADDRESS, CAROL_ADDRESS, DAVID_ADDRESS} from "../constants.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract TestBase is Test {
     // Convenience actors for testing
-    address immutable alice = ALICE_ADDRESS;
-    address immutable bob = BOB_ADDRESS;
-    address immutable carol = CAROL_ADDRESS;
-    address immutable david = DAVID_ADDRESS;
-    address immutable randomAddress = vm.addr(1234567890);
+    address immutable ALICE = ALICE_ADDRESS;
+    address immutable BOB = BOB_ADDRESS;
+    address immutable CAROL = CAROL_ADDRESS;
+    address immutable DAVID = DAVID_ADDRESS;
+    address immutable RANDOM_ADDRESS = vm.addr(1234567890);
 
     constructor() {
-        vm.label(alice, "Alice");
-        vm.label(bob, "Bob");
-        vm.label(carol, "Carol");
-        vm.label(david, "David");
-        vm.label(randomAddress, "Random wallet");
+        vm.label(ALICE, "Alice");
+        vm.label(BOB, "Bob");
+        vm.label(CAROL, "Carol");
+        vm.label(DAVID, "David");
+        vm.label(RANDOM_ADDRESS, "Random wallet");
     }
 
     /// @notice Returns the address and private key associated to the given name.

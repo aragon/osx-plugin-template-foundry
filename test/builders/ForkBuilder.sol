@@ -5,7 +5,6 @@ import {ForkTestBase} from "../lib/ForkTestBase.sol";
 
 import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {DAOFactory} from "@aragon/osx/framework/dao/DAOFactory.sol";
-import {PluginRepoFactory} from "@aragon/osx/framework/plugin/repo/PluginRepoFactory.sol";
 import {PluginRepo} from "@aragon/osx/framework/plugin/repo/PluginRepo.sol";
 import {PluginSetupRef} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessorHelpers.sol";
 import {MyUpgradeablePlugin} from "../../src/MyUpgradeablePlugin.sol";
@@ -17,7 +16,7 @@ contract ForkBuilder is ForkTestBase {
     address immutable UPGRADEABLE_PLUGIN_BASE = address(new MyUpgradeablePlugin());
 
     // Add your own parameters here
-    address manager = bob;
+    address manager = BOB;
     uint256 initialNumber = 1;
 
     function withManager(address _manager) public returns (ForkBuilder) {

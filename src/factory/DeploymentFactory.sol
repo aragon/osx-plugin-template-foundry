@@ -1,20 +1,18 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.17;
 
-import {DAO, IDAO} from "@aragon/osx/core/dao/DAO.sol";
+import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {DAOFactory} from "@aragon/osx/framework/dao/DAOFactory.sol";
 import {PermissionLib} from "@aragon/osx-commons-contracts/src/permission/PermissionLib.sol";
 import {PluginSetupProcessor} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessor.sol";
 import {hashHelpers, PluginSetupRef} from "@aragon/osx/framework/plugin/setup/PluginSetupProcessorHelpers.sol";
 import {PluginRepoFactory} from "@aragon/osx/framework/plugin/repo/PluginRepoFactory.sol";
 import {PluginRepo, IPluginSetup} from "@aragon/osx/framework/plugin/repo/PluginRepo.sol";
-import {IVotesUpgradeable} from "@openzeppelin/contracts-upgradeable/governance/utils/IVotesUpgradeable.sol";
 import {ProxyLib} from "@aragon/osx-commons-contracts/src/utils/deployment/ProxyLib.sol";
 import {MyPluginSetup} from "../setup/MyPluginSetup.sol";
 
 // 3 Plugin types (use accordingly)
-import {MyUpgradeablePlugin} from "../MyUpgradeablePlugin.sol";
-
+// import {MyUpgradeablePlugin} from "../MyUpgradeablePlugin.sol";
 // import {MyCloneablePlugin} from "../MyCloneablePlugin.sol";
 // import {MyStaticPlugin} from "../MyStaticPlugin.sol";
 
@@ -92,8 +90,7 @@ contract DeploymentFactory {
 
         // Deploy the DAO with `daoOwner` as ROOT
         dao = DAO(
-            payable(
-                ProxyLib.deployUUPSProxy(
+            payable(ProxyLib.deployUUPSProxy(
                     daoBase,
                     abi.encodeCall(
                         DAO.initialize,
@@ -104,8 +101,7 @@ contract DeploymentFactory {
                             "" // DAO URI (not used)
                         )
                     )
-                )
-            )
+                ))
         );
 
         // Grant the DAO the necessary permissions on itself
@@ -131,13 +127,14 @@ contract DeploymentFactory {
         MyPluginSetup myPluginSetup = new MyPluginSetup();
 
         // Publish repo
-        pluginRepo = PluginRepoFactory(params.pluginRepoFactory).createPluginRepoWithFirstVersion(
-            params.myPluginEnsSubdomain,
-            address(myPluginSetup),
-            address(dao),
-            " ", // Release metadata (not used)
-            " " // Build metadata (not used)
-        );
+        pluginRepo = PluginRepoFactory(params.pluginRepoFactory)
+            .createPluginRepoWithFirstVersion(
+                params.myPluginEnsSubdomain,
+                address(myPluginSetup),
+                address(dao),
+                " ", // Release metadata (not used)
+                " " // Build metadata (not used)
+            );
 
         // If no maintainer is defined, set the DAO as the maintainer
         if (params.pluginRepoMaintainer == address(0)) {
@@ -152,10 +149,11 @@ contract DeploymentFactory {
 
         // New plugin instance(s)
         PluginRepo.Tag memory versionTag = PluginRepo.Tag(1, 1);
-        (plugin, preparedSetupData) = params.pluginSetupProcessor.prepareInstallation(
-            address(dao),
-            PluginSetupProcessor.PrepareInstallationParams(PluginSetupRef(versionTag, pluginRepo), paramsData)
-        );
+        (plugin, preparedSetupData) = params.pluginSetupProcessor
+            .prepareInstallation(
+                address(dao),
+                PluginSetupProcessor.PrepareInstallationParams(PluginSetupRef(versionTag, pluginRepo), paramsData)
+            );
     }
 
     /// @notice Gets a prepared plugin installation and it applies the requested permissions
@@ -165,15 +163,16 @@ contract DeploymentFactory {
         PluginRepo pluginRepo,
         IPluginSetup.PreparedSetupData memory preparedSetupData
     ) internal {
-        params.pluginSetupProcessor.applyInstallation(
-            address(dao),
-            PluginSetupProcessor.ApplyInstallationParams(
-                PluginSetupRef(PluginRepo.Tag(1, 1), pluginRepo),
-                plugin,
-                preparedSetupData.permissions,
-                hashHelpers(preparedSetupData.helpers)
-            )
-        );
+        params.pluginSetupProcessor
+            .applyInstallation(
+                address(dao),
+                PluginSetupProcessor.ApplyInstallationParams(
+                    PluginSetupRef(PluginRepo.Tag(1, 1), pluginRepo),
+                    plugin,
+                    preparedSetupData.permissions,
+                    hashHelpers(preparedSetupData.helpers)
+                )
+            );
     }
 
     /// @notice Allow this factory to apply installations

@@ -13,7 +13,7 @@ import {MyPluginSetup} from "../src/setup/MyPluginSetup.sol";
  * - Deploys a new PluginRepo for each available plugin
  * - Publishes a new version of each plugin (release 1, build 1)
  */
-contract DeploySimpleScript is Script {
+contract DeploySimple is Script {
     using stdJson for string;
 
     address deployer;

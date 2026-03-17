@@ -12,6 +12,7 @@ lcov.info
 # Testing
 test/**/*.tree
 lcov.info
+lcov.info.*
 report
 
 # Broadcasts

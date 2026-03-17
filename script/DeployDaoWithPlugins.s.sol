@@ -25,7 +25,7 @@ import {MyPluginSetup} from "../src/setup/MyPluginSetup.sol";
  * - The deployer may be the temporary maintainer of the plugin repo.
  * - Use the factory variant instead.
  */
-contract DeployDaoWithPluginsScript is Script {
+contract DeployDaoWithPlugins is Script {
     using stdJson for string;
 
     address deployer;

@@ -19,3 +19,6 @@
 [submodule "lib/buffer"]
 	path = lib/buffer
 	url = https://github.com/ensdomains/buffer
+[submodule "lib/foundry-env"]
+	path = lib/foundry-env
+	url = https://github.com/aragon/foundry-env.git

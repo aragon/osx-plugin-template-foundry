@@ -85,12 +85,6 @@ Testing lifecycle:
   make test-fork            Run fork tests, using RPC_URL
   make test-coverage        Generate an HTML coverage report under ./report
 
-  make sync-tests           Scaffold or sync test definitions into solidity tests
-  make check-tests          Checks if the solidity test files are out of sync
-  make test-tree            Generates a markdown file with the test definitions
-  make test-tree-prompt     Prints an LLM prompt to generate the test definitions for a given file
-  make test-prompt          Prints an LLM prompt to implement the tests for a given contract
-
 Deployment targets:
 
   make predeploy            Simulate a protocol deployment
@@ -158,68 +152,6 @@ Testing lifecycle:
 ```
 
 Run `make test` or `make test-fork` to check the logic's accordance to the specs. The latter will require `RPC_URL` to be defined.
-
-### Writing tests
-
-Regular Foundry test contracts can be written as usual under the `tests` folder.
-
-Optionally, you may want to describe a hierarchy of scenarios using yaml files like [MyPlugin.t.yaml](./test/MyPlugin.t.yaml). These can be transformed into a solidity scaffold by running `make sync-tests`, thanks to [bulloak](https://github.com/alexfertel/bulloak).
-
-Create a file with `.t.yaml` extension within the `test` folder and describe a hierarchy using the following structure:
-
-```yaml
-# MyPlugin.t.yaml
-
-MyPluginTest:
-  - given: The caller has no permission
-    comment: The caller needs MANAGER_PERMISSION_ID
-    and:
-      - when: Calling setNumber()
-        then:
-          - it: Should revert
-  - given: The caller has permission
-    and:
-      - when: Calling setNumber()
-        then:
-          - it: It should update the stored number
-  - when: Calling number()
-    then:
-      - it: Should return the right value
-```
-
-Nodes like `when` and `given` can be nested without limitations.
-
-Then use `make sync-tests` to automatically sync the described branches into solidity test files.
-
-```sh
-$ make
-Testing lifecycle:
-# ...
-
-- make sync-tests         Scaffold or sync test definitions into solidity tests
-- make check-tests        Checks if the solidity test files are out of sync
-- make test-tree          Generates a markdown file with the test definitions
-
-$ make sync-tests
-```
-
-Each yaml file generates (or syncs) a solidity test file with functions ready to be implemented. They also generate a human readable summary in [TESTS.md](./TESTS.md).
-
-### Using LLM's to describe the expected tests
-
-```sh
-$ make
-Testing lifecycle:
-# ...
-
-- make test-llm-prompt    Generates a prompt to generate the test tree for a given file
-
-$ make test-llm-prompt src=./src/MyUpgradeablePlugin.sol
-```
-
-This command will make a prompt that you can provide to an LLM so that it assists in generating test definitions.
-
-Copy the resulting output into a file like `test/MyUpgradeablePlugin.t.yaml` and run `make sync-tests` to get a solidity scaffold.
 
 ### Testing with a local OSx
 

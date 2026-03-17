@@ -21,7 +21,7 @@ import {DeploymentFactory} from "../src/factory/DeploymentFactory.sol";
  * - The parameters passed to the factory remain immutable and accessible indefinitely
  * - The deployment logic and parameters can be fully verified, end to end
  */
-contract DeployViaFactoryScript is Script {
+contract DeployViaFactory is Script {
     using stdJson for string;
 
     // Deployment parameters (env)

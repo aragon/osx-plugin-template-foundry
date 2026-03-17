@@ -3,7 +3,6 @@ SHELL:=/bin/bash
 
 # Import settings and constants
 include .env
-include llm.mk
 
 # CONSTANTS
 
@@ -14,7 +13,6 @@ DEPLOYMENT_SCRIPT := DeploySimple
 
 SOLC_VERSION := $(shell cat foundry.toml | grep solc | cut -d= -f2 | xargs echo || echo "0.8.28")
 SUPPORTED_VERIFIERS := etherscan blockscout sourcify zksync routescan-mainnet routescan-testnet
-MAKE_TEST_TREE_CMD := deno run ./script/make-test-tree.ts
 VERIFY_CONTRACTS_SCRIPT := script/verify-contracts.sh
 TEST_TREE_MARKDOWN := TESTS.md
 ARTIFACTS_FOLDER := ./artifacts
@@ -119,136 +117,6 @@ report/index.html: lcov.info
 
 lcov.info: $(TEST_COVERAGE_SRC_FILES)
 	forge coverage --report lcov
-
-##
-
-sync-tests: $(TEST_TREE_FILES) ## Scaffold or sync test definitions into solidity tests
-	@for file in $^; do \
-		if [ ! -f $${file%.tree}.t.sol ]; then \
-			echo "[Scaffold]   $${file%.tree}.t.sol" ; \
-			bulloak scaffold -s $(SOLC_VERSION) --vm-skip -w $$file ; \
-		else \
-			echo "[Sync file]  $${file%.tree}.t.sol" ; \
-			bulloak check --fix $$file ; \
-		fi \
-	done
-
-	@make test-tree
-
-check-tests: $(TEST_TREE_FILES) ## Checks if the solidity test files are out of sync
-	bulloak check $^
-
-test-tree: $(TEST_TREE_MARKDOWN) ## Generates a markdown file with the test definitions
-
-# Generate single a markdown file with the test trees
-$(TEST_TREE_MARKDOWN): $(TEST_TREE_FILES)
-	@echo "[Markdown]   $(@)"
-	@echo "# Test tree definitions" > $@
-	@echo "" >> $@
-	@echo "Below is the graphical summary of the tests described within [test/*.t.yaml](./test)" >> $@
-	@echo "" >> $@
-
-	@for file in $^; do \
-		echo "\`\`\`" >> $@ ; \
-		cat $$file >> $@ ; \
-		echo "\`\`\`" >> $@ ; \
-	done
-
-# Internal dependencies and transformations
-
-$(TEST_TREE_FILES): $(TEST_SOURCE_FILES)
-
-%.tree: %.t.yaml
-	@if ! command -v deno >/dev/null 2>&1; then \
-	    echo "Note: deno can be installed by running 'curl -fsSL https://deno.land/install.sh | sh'" ; \
-	    exit 1 ; \
-	fi
-	@if ! command -v bulloak >/dev/null 2>&1; then \
-	    echo "Note: bulloak can be installed by running 'cargo install bulloak'" ; \
-	    exit 1 ; \
-	fi
-
-	@for file in $^; do \
-	  echo "[Convert]    $$file -> $${file%.t.yaml}.tree" ; \
-		cat $$file | $(MAKE_TEST_TREE_CMD) > $${file%.t.yaml}.tree ; \
-	done
-
-# LLM prompt generation
-
-test-tree-prompt: export PROMPT_TEMPLATE=$(TEST_TREE_GENERATION_PROMPT)
-
-.PHONY: test-tree-prompt
-test-tree-prompt: ## Prints an LLM prompt to generate the test definitions for a given file
-	@if [ -z "$(src)" ] ; then \
-		printf "Usage:\n   $$ make $(@) src=./path/to/source-file\n" ; \
-		exit 1 ; \
-	fi
-	@stat $(src) > /dev/null
-	@printf '%s' "$$PROMPT_TEMPLATE" | awk \
-		-v source_file="$(src)" \
-		' \
-		function readfile(filename) { \
-			while ((getline line < filename) > 0) { print line; } \
-			close(filename); \
-		} \
-		/<<SOURCE_FILE>>/ { \
-			readfile(source_file); \
-			next; \
-		} \
-		{ print; } \
-		'
-
-test-prompt: export PROMPT_TEMPLATE=$(TEST_FILE_GENERATION_PROMPT)
-test-prompt: CONTRACT_FILES=$(wildcard src/**/*.sol)
-test-prompt: DAO_BUILDER=test/builders/SimpleBuilder.sol
-test-prompt: TEST_BASE=test/lib/TestBase.sol
-
-.PHONY: test-prompt
-test-prompt: ## Prints an LLM prompt to implement the tests for a given contract
-	@if [ -z "$(def)" ] || [ -z "$(src)" ] ; then \
-	    printf "Usage:\n   $$ make $(@) def=./MyContract.t.yaml src=./MyContract.t.sol\n" ; \
-		exit 1 ; \
-	fi
-	@printf '%s' "$$PROMPT_TEMPLATE" | awk \
-		-v sources="$(CONTRACT_FILES)" \
-		-v dao_builder_file="$(DAO_BUILDER)" \
-		-v test_base_file="$(TEST_BASE)" \
-		-v test_tree_file="$(def)" \
-		-v current_test_file="$(src)" \
-		' \
-		function readfile(filename) { \
-			while ((getline line < filename) > 0) { \
-				print line; \
-			} \
-			close(filename); \
-		} \
-		BEGIN { \
-			split(sources, source_files, " "); \
-		} \
-		/<<SOURCE>>/ { \
-			for (i in source_files) { \
-				readfile(source_files[i]); \
-			} \
-			next; \
-		} \
-		/<<DAO_BUILDER>>/ { \
-			readfile(dao_builder_file); \
-			next; \
-		} \
-		/<<TEST_BASE>>/ { \
-			readfile(test_base_file); \
-			next; \
-		} \
-		/<<TEST_TREE>>/ { \
-			readfile(test_tree_file); \
-			next; \
-		} \
-		/<<TARGET_TEST_FILE>>/ { \
-			readfile(current_test_file); \
-			next; \
-		} \
-		{ print; } \
-		'
 
 ## Deployment targets:
 
